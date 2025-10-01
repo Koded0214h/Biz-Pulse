@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Metric, Insight, Alert
+from .models import Metric, Insight, Alert ,ForecastPrediction
 # Import DataSource from core for cross-app relation
 from core.models import DataSource
 
@@ -110,3 +110,10 @@ class ForecastIngestSerializer(serializers.Serializer):
     metric_name = serializers.CharField(max_length=255)
     prediction_time = serializers.DateTimeField()
     prediction_data = PredictionDataSerializer(many=True) 
+    
+class ForecastPredictionSerializer(serializers.ModelSerializer):
+    """Serializer for retrieving the structured ForecastPrediction data."""
+    class Meta:
+        model = ForecastPrediction
+        fields = ['id', 'data_source', 'metric_name', 'prediction_time', 'prediction_data', 'created_at']
+        read_only_fields = fields # All fields should be read-only for retrieval

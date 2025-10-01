@@ -6,11 +6,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.core.files.storage import default_storage
 
-from .models import Metric, Insight, Alert
+from .models import Metric, Insight, Alert, ForecastPrediction
 from .serializers import (
     MetricViewSetSerializer,
     InsightViewSetSerializer,
-    AlertViewSetSerializer
+    AlertViewSetSerializer,
+    ForecastPredictionSerializer
 )
 
 # Create your views here.
@@ -55,3 +56,20 @@ class AlertViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Alert.objects.all().order_by('-timestamp')
     serializer_class = AlertViewSetSerializer
     permission_classes = [IsAuthenticated]
+    
+    
+class ForecastPredictionViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Provides read-only access to structured Forecast Prediction data.
+    """
+    queryset = ForecastPrediction.objects.all().order_by('-prediction_time')
+    serializer_class = ForecastPredictionSerializer
+    permission_classes = [IsAuthenticated]
+
+    # Optional: Filter by data source for convenience
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        data_source_id = self.request.query_params.get('data_source_id')
+        if data_source_id is not None:
+            queryset = queryset.filter(data_source_id=data_source_id)
+        return queryset
