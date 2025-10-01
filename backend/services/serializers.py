@@ -19,7 +19,7 @@ class InsightSummarySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Insight
-        fields = ['id', 'title', 'data_source_name']
+        fields = ['id', 'title', 'summary', 'data_source_name']
 # ----------------------------------------------
 
 
@@ -39,20 +39,14 @@ class MetricCreateSerializer(serializers.ModelSerializer):
 class MetricViewSetSerializer(serializers.ModelSerializer):
     """
     Main Serializer for Metric (Used for READ operations).
-    Displays the title of the related Insight for context.
+    Displays the summary of the related Insight for context.
     """
-    # The Metric model's reverse relation to Insight is named 'insights'
-    # This uses a Source field to safely access the title of the related Insight(s)
-    # Note: Accessing insights.first is safer than a direct foreign key on Metric
-    insight_title = serializers.CharField(source='insights.first.text', read_only=True)
+    insight_summary = serializers.CharField(source='insight.summary', read_only=True)
 
     class Meta:
         model = Metric
-        # FIXED: Removed 'insight' from the fields list, as it does not exist on the Metric model.
-        # Used 'name' instead of 'key'
-        fields = ['id', 'insight_title', 'name', 'value', 'timestamp']
+        fields = ['id', 'insight_summary', 'name', 'value', 'timestamp']
         read_only_fields = ['timestamp']
-        # The 'insights' relation is now accessed via the insight_title custom field.
 
 
 class InsightViewSetSerializer(serializers.ModelSerializer):
@@ -61,8 +55,10 @@ class InsightViewSetSerializer(serializers.ModelSerializer):
     Includes nested metrics and the name of the data source.
     """
     data_source_name = serializers.CharField(source='data_source.name', read_only=True)
-    # Assuming related_name='metrics' on the Metric model pointing to Insight
-    metrics = MetricReadSerializer(many=True, read_only=True)
+    metrics = serializers.SerializerMethodField()
+
+    def get_metrics(self, obj):
+        return MetricReadSerializer(obj.metrics.all(), many=True).data
 
     class Meta:
         model = Insight

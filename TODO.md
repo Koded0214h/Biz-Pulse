@@ -1,11 +1,11 @@
-<!-- Optional: Add a custom banner or animated GIF here -->
-<!-- ![Welcome Banner](https://your-custom-banner-link.com/banner.gif) -->
+# Fix Insight Model and Analysis Error
 
-<h2 align="left">Raufu Abdulrahman Ayobami</h2>
-<!-- Write headlines about myself here!!!1 -->
+## Steps to Complete
 
-## 🚀 Summary
-
+- [x] Update Insight model in backend/services/models.py: Remove metric FK, add data_source FK, title, summary fields, change text to summary.
+- [x] Update Metric model in backend/services/models.py: Add insight FK.
+- [x] Update serializers in backend/services/serializers.py: Change InsightViewSetSerializer to use summary, add title, data_source, make metrics SerializerMethodField. Update InsightSummarySerializer. Update MetricViewSetSerializer to use 'insight.summary'.
+- [x] Update analysis.py: Change Insight.objects.create to use data_source, title, summary, recommendations.
 Growth-driven Backend Engineer passionate about building scalable, secure, and AI-powered systems. Experienced in designing REST APIs, integrating third-party services, and deploying production-ready platforms. Skilled in Django REST Framework, JWT, Celery, PostgreSQL, and React. Proven ability to lead hackathon teams, ship MVPs under tight deadlines, and deliver real-world fintech, health, and AI solutions.
 
 ---

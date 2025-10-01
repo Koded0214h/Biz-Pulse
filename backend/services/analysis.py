@@ -131,10 +131,10 @@ def start_bedrock_analysis(job_id: int):
     # 5. Save the resulting Insight (Database Transaction)
     with transaction.atomic():
         insight = Insight.objects.create(
+            data_source=data_source,
             title=llm_output.get('title', "Bedrock Analysis Error"),
             summary=llm_output.get('summary', "Could not parse analysis summary."),
-            recommendations=llm_output.get('recommendation', "No recommendation provided."), 
-            data_source=data_source
+            recommendations=llm_output.get('recommendation', "No recommendation provided.")
         )
 
         metrics.update(insight=insight)
