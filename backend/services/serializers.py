@@ -28,8 +28,8 @@ class MetricCreateSerializer(serializers.ModelSerializer):
     Serializer optimized for metric creation via the internal bulk API (Glue Job).
     """
     # Explicitly define data_source_id as the Glue job provides the ID, not the object.
-    data_source_id = serializers.IntegerField()
-    
+    data_source_id = serializers.PrimaryKeyRelatedField(queryset=DataSource.objects.all(), source='data_source')
+
     class Meta:
         model = Metric
         # Only include fields required for metric creation
