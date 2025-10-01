@@ -100,3 +100,13 @@ class AlertViewSetSerializer(serializers.ModelSerializer):
         model = Alert
         fields = ['id', 'insight', 'severity', 'status', 'details_json', 'created_at', 'acknowledged_at']
         read_only_fields = ['insight', 'created_at', 'acknowledged_at']
+        
+class PredictionDataSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    value = serializers.FloatField()
+
+class ForecastIngestSerializer(serializers.Serializer):
+    data_source_id = serializers.IntegerField() 
+    metric_name = serializers.CharField(max_length=255)
+    prediction_time = serializers.DateTimeField()
+    prediction_data = PredictionDataSerializer(many=True) 

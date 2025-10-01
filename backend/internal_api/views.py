@@ -8,14 +8,13 @@ import sys
 from core.models import DataSource, IngestionJob 
 
 # Services App Dependencies
-from services.models import Metric, Insight # <--- Added Insight import
-from services.serializers import MetricCreateSerializer, AnomalyIngestSerializer # <--- Added AnomalyIngestSerializer
+from services.models import Metric, Insight, ForecastPrediction 
+from services.serializers import MetricCreateSerializer, AnomalyIngestSerializer, ForecastIngestSerializer 
 from services.analysis import start_bedrock_analysis 
 from .permissions import IsInternalService
 
 
 class BulkMetricCreateView(APIView):
-    # ... (Your existing BulkMetricCreateView code goes here, it remains unchanged) ...
 
     permission_classes = [IsInternalService]
 
@@ -180,3 +179,78 @@ class AnomalyIngestView(APIView):
             return Response({"error": "Database error saving anomaly insight."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({"message": "Anomaly Insight created."}, status=status.HTTP_201_CREATED)
+    
+class ForecastIngestView(APIView):
+    permission_classes = [IsInternalService]
+
+    def post(self, request, *args, **kwargs):
+        serializer = ForecastIngestSerializer(data=request.data)
+        
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        
+        try:
+            data_source = DataSource.objects.get(id=data['data_source_id'])
+        except DataSource.DoesNotExist:
+            return Response({"error": "DataSource not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            with transaction.atomic():
+                
+                # --- CRITICAL FIX 1: Prepare data for JSONField storage ---
+                # prediction_data contains Python date objects which are not JSON serializable.
+                # We must convert them to ISO strings before saving to the JSONField.
+                processed_prediction_data = [
+                    {
+                        'date': item['date'].isoformat(), # Convert date object to string
+                        'value': item['value']
+                    } 
+                    for item in data['prediction_data']
+                ]
+                
+                # 1. Create the structured forecast prediction record
+                ForecastPrediction.objects.create(
+                    data_source=data_source,
+                    metric_name=data['metric_name'],
+                    prediction_time=data['prediction_time'],
+                    prediction_data=processed_prediction_data # Use the processed string data
+                )
+                
+                # 2. Create a summary Insight from the prediction data
+                first_pred = data['prediction_data'][0]
+                last_pred = data['prediction_data'][-1]
+                
+                first_pred_value = first_pred['value']
+                last_pred_value = last_pred['value']
+                
+                # --- CRITICAL FIX 2: Convert date objects to strings for the Insight summary ---
+                # Use strftime for cleaner date string formatting in the summary
+                first_pred_date_str = first_pred['date'].strftime('%Y-%m-%d')
+                last_pred_date_str = last_pred['date'].strftime('%Y-%m-%d')
+                # -----------------------------------------------------------------------------
+                
+                trend = "rising" if last_pred_value > first_pred_value else "falling or stable"
+                
+                Insight.objects.create(
+                    data_source=data_source,
+                    source='FORECAST', 
+                    title=f"Forecast: {data['metric_name']} Trend is {trend.title()}",
+                    summary=(
+                        f"Amazon Forecast predicts that the '{data['metric_name']}' will be {trend}. "
+                        f"It starts at ${first_pred_value:,.2f} on "
+                        f"{first_pred_date_str} and ends at " 
+                        f"${last_pred_value:,.2f} on {last_pred_date_str}."
+                    ),
+                    recommendations={'action': f"Prepare inventory/marketing based on the {trend} trend."} 
+                )
+                
+        except Exception as e:
+            # We print the error so we can debug it
+            print(f"CRITICAL ERROR LOG: Forecast save failed. Error: {e}")
+            sys.stdout.flush()
+            # Return a 500 status to the calling service
+            return Response({"error": "Database error saving forecast insight."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({"message": "Forecast Prediction and Insight created."}, status=status.HTTP_201_CREATED)
