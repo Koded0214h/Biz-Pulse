@@ -5,7 +5,7 @@ import boto3
 from django.db import transaction
 from django.db.models import Avg, Max
 from services.models import IngestionJob, Insight, Metric
-import sys # <--- NEW: Import sys for flushing print statements
+import sys 
 
 # --- Setup Boto3 Client ---
 REGION = os.environ.get('AWS_REGION_NAME', 'us-east-1')
@@ -58,15 +58,42 @@ def start_bedrock_analysis(job_id: int):
     print("BEDROCK LOG: Data aggregation successful. Starting prompt construction.")
     sys.stdout.flush()
 
-    # 3. Construct the prompt for the LLM (Rest of prompt code is unchanged)
-    # ... prompt construction logic ...
+    # 3. Construct the prompt for the LLM
+    prompt_data = {
+        "data_source_name": data_source.name,
+        "max_value": f"{summary_stats['max_value']:.2f}" if summary_stats['max_value'] is not None else "N/A",
+        "avg_value": f"{summary_stats['avg_value']:.2f}" if summary_stats['avg_value'] is not None else "N/A",
+        "sample_metrics": [
+            {'name': m.name, 'value': m.value, 'timestamp': str(m.timestamp)} 
+            for m in metrics[:5]
+        ]
+    }
+
+    prompt = f"""
+    Analyze the following key performance metrics for the {prompt_data['data_source_name']} data source:
+    Maximum Value: {prompt_data['max_value']}
+    Average Value: {prompt_data['avg_value']}
+    
+    Sample Data Points: {prompt_data['sample_metrics']}
+
+    Based on this data, provide a two-sentence narrative business insight and a short recommendation.
+    Format your response STRICTLY as a JSON object with keys: "title", "summary", and "recommendation".
+    """
     
     # 4. Call Bedrock API
     try:
         bedrock_client = get_bedrock_client()
         
-        # ... AWS API call logic (Model ID, Body, Invoke) ...
-
+        # --- FIX 1: Define model_id in the correct scope to resolve the 'not defined' error ---
+        model_id = 'anthropic.claude-3-haiku-20240307-v1:0' 
+        
+        # --- FIX 2: Ensure 'body' variable is defined before the invoke call ---
+        body = json.dumps({
+            "prompt": f"\n\nHuman: {prompt}\n\nAssistant:",
+            "max_tokens_to_sample": 1024,
+            "temperature": 0.5,
+        })
+        
         response = bedrock_client.invoke_model(
             modelId=model_id,
             contentType='application/json',
@@ -74,6 +101,7 @@ def start_bedrock_analysis(job_id: int):
             body=body
         )
         
+        # ... rest of Bedrock API response parsing and saving ...
         response_body = response.get('body').read().decode('utf-8')
         response_json = json.loads(response_body)
         insight_text = response_json.get('completion', '').strip()
@@ -86,16 +114,13 @@ def start_bedrock_analysis(job_id: int):
         sys.stdout.flush()
 
     except Exception as e:
-        # **THIS IS THE LIKELY SOURCE OF THE 500**
         job.status = 'FAILED'; job.log_details = f"Bedrock API call or JSON parsing failed: {e}"; job.save()
         print(f"CRITICAL BEDROCK ERROR: Bedrock call failed. Error: {e}")
         sys.stdout.flush()
-        # **Crucial: Do NOT re-raise the exception here. The function should exit gracefully
-        # by returning, as the calling view is expecting the job to handle its own failure.**
         return
 
     # 5. Save the resulting Insight (Database Transaction)
-    # ... (Rest of Insight saving logic is unchanged)
+    # The llm_output variable is now guaranteed to exist if we reached this point.
     with transaction.atomic():
         insight = Insight.objects.create(
             title=llm_output.get('title', "Bedrock Analysis Error"),
