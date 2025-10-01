@@ -1,10 +1,14 @@
 # internal_api/views.py
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
-from services.models import Metric, IngestionJob # Import necessary models
-from services.serializers import MetricViewSetSerializer # Reuse your serializer
+
+# Import the correct models
+from services.models import Metric, IngestionJob 
+# Import the new serializer specifically for creation
+from services.serializers import MetricCreateSerializer # <--- CHANGED
 from .permissions import IsInternalService
 
 class BulkMetricCreateView(APIView):
@@ -23,24 +27,26 @@ class BulkMetricCreateView(APIView):
         except IngestionJob.DoesNotExist:
             return Response({"error": f"IngestionJob ID {job_id} not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        # 1. Validate data structure (using the serializer)
-        serializer = MetricViewSetSerializer(data=metrics_data, many=True)
+        # 1. Validate data structure (using the correct serializer)
+        # Use MetricCreateSerializer for writing/validating metric data
+        serializer = MetricCreateSerializer(data=metrics_data, many=True)
         if not serializer.is_valid():
-            job.status = 'FAILED'; job.log_details = "Metrics data validation failed."; job.save()
+            # Use serializer.errors for detailed validation failures
+            job.status = 'FAILED'; job.log_details = f"Metrics data validation failed: {serializer.errors}"; job.save()
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         # 2. Bulk Create Metrics and Update Job Status
         with transaction.atomic():
-            # Bulk create: We assume the Glue job provided all necessary FK data (data_source_id)
+            # Use validated_data for safe creation
             metrics_to_create = [
                 Metric(
                     ingestion_job=job,
-                    data_source_id=metric_data['data_source_id'], # Glue must provide this
+                    data_source_id=metric_data['data_source_id'], 
                     name=metric_data['name'],
                     value=metric_data['value'],
                     timestamp=metric_data['timestamp']
                 )
-                for metric_data in metrics_data
+                for metric_data in serializer.validated_data # <--- USE VALIDATED DATA
             ]
             Metric.objects.bulk_create(metrics_to_create)
             
