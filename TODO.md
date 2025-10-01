@@ -3,9 +3,6 @@
 
 <h2 align="left">Raufu Abdulrahman Ayobami</h2>
 <!-- Write headlines about myself here!!!1 -->
-</p>
-
----
 
 ## 🚀 Summary
 
