@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     "services",
     "storages",
     
+    'corsheaders',
+    
     "rest_framework",
     "rest_framework_simplejwt",
     "drf_spectacular",
@@ -53,6 +55,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -103,12 +106,21 @@ WSGI_APPLICATION = "backend.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if(DATABASE_URL):
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv('DATABASE_URL')
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -179,3 +191,5 @@ MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 
 
 INTERNAL_API_SECRET_KEY = os.environ.get('INTERNAL_API_SECRET_KEY', 'raheemah-is-the-best')
+
+CORS_ALLOW_ALL_ORIGINS = True

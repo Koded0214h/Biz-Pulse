@@ -3,12 +3,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
 
-# Import the correct models
-from services.models import Metric, IngestionJob
-# Import DataSource from core for the bypass
-from core.models import DataSource # <--- NEW IMPORT
-# Import the correct serializer for creation
-from services.serializers import MetricCreateSerializer 
+# Core Models: Required for the Hackathon Bypass and Job lookup
+from core.models import DataSource, IngestionJob 
+
+# Services App Dependencies
+from services.models import Metric
+from services.serializers import MetricCreateSerializer
+from services.analysis import start_bedrock_analysis # <--- NEW IMPORT: Phase C trigger
 from .permissions import IsInternalService
 
 class BulkMetricCreateView(APIView):
@@ -28,24 +29,20 @@ class BulkMetricCreateView(APIView):
             return Response({"error": f"IngestionJob ID {job_id} not found."}, status=status.HTTP_404_NOT_FOUND)
 
         # ------------------------------------------------------------------
-        # HACKATHON BYPASS: Ensure a target DataSource ID exists for testing
+        # HACKATHON BYPASS: Ensure DataSource ID=1 exists
         # ------------------------------------------------------------------
-        # This prevents the FOREIGN KEY constraint error on the data_source FK
         try:
             DataSource.objects.get_or_create(
                 id=1, 
                 defaults={'name': 'Hackathon Placeholder Source'}
             )
         except Exception as e:
-            # Handle potential DB locking/race condition if necessary, but typically fine.
-            print(f"Hackathon bypass error on DataSource check: {e}")
+            # Safely continue execution
             pass
-        # ------------------------------------------------------------------
 
         # 1. Validate data structure
         serializer = MetricCreateSerializer(data=metrics_data, many=True)
         if not serializer.is_valid():
-            # Use serializer.errors for detailed validation failures
             job.status = 'FAILED'; job.log_details = f"Metrics data validation failed: {serializer.errors}"; job.save()
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -54,7 +51,8 @@ class BulkMetricCreateView(APIView):
             metrics_to_create = [
                 Metric(
                     ingestion_job=job,
-                    data_source=metric_data['data_source'],
+                    # FINAL FIX: Use data_source_id to assign the integer ID
+                    data_source_id=metric_data['data_source_id'], 
                     name=metric_data['name'],
                     value=metric_data['value'],
                     timestamp=metric_data['timestamp']
@@ -67,4 +65,10 @@ class BulkMetricCreateView(APIView):
             job.status = 'METRICS_CREATED'; 
             job.save()
 
-        return Response({"message": f"{len(metrics_to_create)} metrics created. Ready for AI analysis."}, status=status.HTTP_201_CREATED)
+        # 3. PHASE C TRIGGER: Initiate Bedrock Analysis (Simulated)
+        start_bedrock_analysis(job_id)
+
+        return Response(
+            {"message": f"{len(metrics_to_create)} metrics created. Bedrock analysis triggered."}, 
+            status=status.HTTP_201_CREATED
+        )
