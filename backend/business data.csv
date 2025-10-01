@@ -1,0 +1,4 @@
+timestamp,metric_name,value
+2025-01-01 10:00:00,Daily_Sales,1500.25
+2025-01-01 10:01:00,Conversion_Rate,0.03
+2025-01-02 10:00:00,Daily_Sales,1620.50
