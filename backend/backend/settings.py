@@ -28,7 +28,7 @@ SECRET_KEY = "django-insecure-4f%#!ujw_0((tr)ep^+122wjg1^ks+shulyl32@pv8w$9vm*1s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["https://biz-pulse-backend.onrender.com/"]
 
 
 # Application definition
@@ -176,3 +176,6 @@ AWS_QUERYSTRING_AUTH = False
 
 AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
 MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+
+
+INTERNAL_API_SECRET_KEY = os.environ.get('INTERNAL_API_SECRET_KEY', 'raheemah-is-the-best')
