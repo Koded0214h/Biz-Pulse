@@ -4,9 +4,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
 
 class RegisterView(generics.CreateAPIView):
+    permission_classes = [permissions.AllowAny]
     serializer_class = RegisterSerializer
 
 class LoginView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
     serializer_class = LoginSerializer
 
     def post(self, request):
