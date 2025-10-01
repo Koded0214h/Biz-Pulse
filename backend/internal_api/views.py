@@ -54,7 +54,7 @@ class BulkMetricCreateView(APIView):
             metrics_to_create = [
                 Metric(
                     ingestion_job=job,
-                    data_source=metric_data['data_source_id'],
+                    data_source=metric_data['data_source'],
                     name=metric_data['name'],
                     value=metric_data['value'],
                     timestamp=metric_data['timestamp']
