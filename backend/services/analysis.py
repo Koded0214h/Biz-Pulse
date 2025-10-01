@@ -84,15 +84,21 @@ def start_bedrock_analysis(job_id: int):
     try:
         bedrock_client = get_bedrock_client()
         
-        # --- FIX 1: Define model_id in the correct scope to resolve the 'not defined' error ---
         model_id = 'anthropic.claude-3-haiku-20240307-v1:0' 
         
-        # --- FIX 2: Ensure 'body' variable is defined before the invoke call ---
+        # --- CRITICAL FIX: Use Messages API format for Claude 3 ---
         body = json.dumps({
-            "prompt": f"\n\nHuman: {prompt}\n\nAssistant:",
-            "max_tokens_to_sample": 1024,
+            "anthropic_version": "bedrock-2023-05-31",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [{"type": "text", "text": prompt}] # Use the constructed prompt
+                }
+            ],
+            "max_tokens": 1024, # Note: Changed from max_tokens_to_sample
             "temperature": 0.5,
         })
+        # -------------------------------------------------------------
         
         response = bedrock_client.invoke_model(
             modelId=model_id,
@@ -101,10 +107,13 @@ def start_bedrock_analysis(job_id: int):
             body=body
         )
         
-        # ... rest of Bedrock API response parsing and saving ...
+        # --- CRITICAL FIX: Update response parsing for Messages API ---
         response_body = response.get('body').read().decode('utf-8')
         response_json = json.loads(response_body)
-        insight_text = response_json.get('completion', '').strip()
+        
+        # Get the first text block from the response content array
+        insight_text = response_json.get('content', [{}])[0].get('text', '').strip()
+        # -------------------------------------------------------------
         
         if insight_text.startswith("```json"):
             insight_text = insight_text.replace("```json", "").replace("```", "").strip()
@@ -120,7 +129,6 @@ def start_bedrock_analysis(job_id: int):
         return
 
     # 5. Save the resulting Insight (Database Transaction)
-    # The llm_output variable is now guaranteed to exist if we reached this point.
     with transaction.atomic():
         insight = Insight.objects.create(
             title=llm_output.get('title', "Bedrock Analysis Error"),
