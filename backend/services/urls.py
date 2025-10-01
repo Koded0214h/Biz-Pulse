@@ -7,7 +7,7 @@ router = DefaultRouter()
 router.register(r'metrics', MetricViewSet, basename='metrics')
 router.register(r'insights', InsightViewSet, basename='insights')
 router.register(r'alerts', AlertViewSet, basename='alerts')
-router.register(r'forecasts', ForecastPredictionViewSet, basename='forecasts') 
+router.register(r'forecasts', ForecastPredictionViewSet, basename='forecasts')
 
 urlpatterns = [
     path('', include(router.urls)),
