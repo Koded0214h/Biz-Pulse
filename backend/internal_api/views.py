@@ -22,7 +22,7 @@ class BulkMetricCreateView(APIView):
         metrics_data = data.get('metrics', [])
 
         print(f"DEBUG LOG: Received request for Job ID: {job_id}")
-        sys.stdout.flush() # Force log output immediately
+        sys.stdout.flush()
 
         if not job_id or not metrics_data:
             return Response({"error": "Missing job_id or metrics list."}, status=status.HTTP_400_BAD_REQUEST)
@@ -40,14 +40,17 @@ class BulkMetricCreateView(APIView):
         # HACKATHON BYPASS: Ensure DataSource ID=1 exists
         # ------------------------------------------------------------------
         try:
-            DataSource.objects.get_or_create(
+            # This is safe because the ETL script hardcodes data_source_id=1
+            ds, _ = DataSource.objects.get_or_create(
                 id=1, 
                 defaults={'name': 'Hackathon Placeholder Source'}
             )
+            data_source_id = ds.id
         except Exception as e:
-            # Safely continue execution
             print(f"WARNING LOG: DataSource get_or_create failed (non-critical): {e}")
             sys.stdout.flush()
+            # If the bypass fails, we must rely on the ID from the payload (if present)
+            data_source_id = metrics_data[0].get('data_source_id') if metrics_data else None
 
         # 1. Validate data structure
         serializer = MetricCreateSerializer(data=metrics_data, many=True)
@@ -57,8 +60,18 @@ class BulkMetricCreateView(APIView):
             sys.stdout.flush()
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-        print("DEBUG LOG: Metrics data validated successfully.")
+        # --- CRITICAL FIX: INJECT data_source_id BACK INTO VALIDATED DATA ---
+        # The serializer strips fields it doesn't know, so we re-inject the required Foreign Key.
+        if not data_source_id:
+            # Fallback check, though the bypass should have set it to 1
+            data_source_id = metrics_data[0].get('data_source_id', 1)
+
+        for metric_data in serializer.validated_data:
+            metric_data['data_source_id'] = data_source_id
+            
+        print("DEBUG LOG: Metrics data validated and data_source_id injected.")
         sys.stdout.flush()
+        # ---------------------------------------------------------------------
 
         # 2. Bulk Create Metrics and Update Job Status
         try:
@@ -66,7 +79,7 @@ class BulkMetricCreateView(APIView):
                 metrics_to_create = [
                     Metric(
                         ingestion_job=job,
-                        data_source_id=metric_data['data_source_id'], 
+                        data_source_id=metric_data['data_source_id'], # <-- Now this key exists
                         name=metric_data['name'],
                         value=metric_data['value'],
                         timestamp=metric_data['timestamp']
@@ -87,8 +100,6 @@ class BulkMetricCreateView(APIView):
             job.status = 'FAILED'; job.log_details = f"Database error during bulk_create: {e}"; job.save()
             print(f"CRITICAL ERROR LOG: Database transaction failed! Error: {e}")
             sys.stdout.flush()
-            # Re-raise the exception to trigger the 500 response, 
-            # but now we have logged the details.
             raise 
 
         # 3. PHASE C TRIGGER: Initiate Bedrock Analysis (Simulated)
@@ -100,7 +111,6 @@ class BulkMetricCreateView(APIView):
             print("DEBUG LOG: Bedrock analysis triggered successfully.")
             sys.stdout.flush()
         except Exception as e:
-            # Catching an exception here ensures the 500 isn't from this function
             job.status = 'FAILED'; job.log_details = f"start_bedrock_analysis raised an uncaught error: {e}"; job.save()
             print(f"CRITICAL ERROR LOG: start_bedrock_analysis FAILED! Error: {e}")
             sys.stdout.flush()
