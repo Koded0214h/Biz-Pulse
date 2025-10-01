@@ -1,4 +1,3 @@
-# services/serializers.py
 from rest_framework import serializers
 from .models import Metric, Insight, Alert
 # Import DataSource from core for cross-app relation
@@ -10,8 +9,7 @@ class MetricReadSerializer(serializers.ModelSerializer):
     """Used for nested representation of Metrics within InsightSerializer."""
     class Meta:
         model = Metric
-        # CORRECTED: Changed 'key' to 'name' to match the Metric model
-        fields = ['id', 'name', 'value', 'timestamp'] # Exclude the insight FK to prevent circular nesting
+        fields = ['id', 'name', 'value', 'timestamp'] 
 
 class InsightSummarySerializer(serializers.ModelSerializer):
     """Used for nested representation of related Insights within AlertSerializer."""
@@ -36,6 +34,27 @@ class MetricCreateSerializer(serializers.ModelSerializer):
         fields = ['data_source_id', 'name', 'value', 'timestamp']
 
 
+# --- NEW: Anomaly Ingest Serializer ---
+class AnomalyIngestSerializer(serializers.Serializer):
+    """Serializer for receiving anomaly data from a simulated Lookout service."""
+    
+    # The ID of the DataSource where the anomaly occurred
+    data_source_id = serializers.IntegerField() 
+    
+    # A brief description of the anomaly event
+    anomaly_title = serializers.CharField(max_length=255)
+    
+    # The metric (e.g., 'Daily Sales') that was flagged
+    metric_name = serializers.CharField(max_length=255)
+    
+    # The timestamp of the anomaly
+    timestamp = serializers.DateTimeField()
+    
+    # The severity score (e.g., 0.95 for 95% confidence)
+    severity_score = serializers.FloatField(required=False, default=0.0)
+# ---------------------------------------
+
+
 class MetricViewSetSerializer(serializers.ModelSerializer):
     """
     Main Serializer for Metric (Used for READ operations).
@@ -56,13 +75,17 @@ class InsightViewSetSerializer(serializers.ModelSerializer):
     """
     data_source_name = serializers.CharField(source='data_source.name', read_only=True)
     metrics = serializers.SerializerMethodField()
+    
+    # --- ADDED 'source' FIELD ---
+    source = serializers.CharField(read_only=True) 
 
     def get_metrics(self, obj):
         return MetricReadSerializer(obj.metrics.all(), many=True).data
 
     class Meta:
         model = Insight
-        fields = ['id', 'title', 'summary', 'data_source', 'data_source_name', 'created_at', 'metrics']
+        # ADDED 'source' to fields
+        fields = ['id', 'title', 'summary', 'source', 'data_source', 'data_source_name', 'created_at', 'metrics']
         read_only_fields = ['data_source', 'created_at', 'metrics']
 
 

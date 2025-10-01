@@ -2,18 +2,21 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
-import sys # <--- NEW: Import sys for flushing print statements
+import sys 
 
 # Core Models: Required for the Hackathon Bypass and Job lookup
 from core.models import DataSource, IngestionJob 
 
 # Services App Dependencies
-from services.models import Metric
-from services.serializers import MetricCreateSerializer
-from services.analysis import start_bedrock_analysis # <--- Phase C trigger
+from services.models import Metric, Insight # <--- Added Insight import
+from services.serializers import MetricCreateSerializer, AnomalyIngestSerializer # <--- Added AnomalyIngestSerializer
+from services.analysis import start_bedrock_analysis 
 from .permissions import IsInternalService
 
+
 class BulkMetricCreateView(APIView):
+    # ... (Your existing BulkMetricCreateView code goes here, it remains unchanged) ...
+
     permission_classes = [IsInternalService]
 
     def post(self, request, *args, **kwargs):
@@ -61,9 +64,7 @@ class BulkMetricCreateView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         # --- CRITICAL FIX: INJECT data_source_id BACK INTO VALIDATED DATA ---
-        # The serializer strips fields it doesn't know, so we re-inject the required Foreign Key.
         if not data_source_id:
-            # Fallback check, though the bypass should have set it to 1
             data_source_id = metrics_data[0].get('data_source_id', 1)
 
         for metric_data in serializer.validated_data:
@@ -120,3 +121,62 @@ class BulkMetricCreateView(APIView):
             {"message": f"{len(metrics_to_create)} metrics created. Bedrock analysis triggered."}, 
             status=status.HTTP_201_CREATED
         )
+
+
+# --- NEW: Anomaly Ingest View for Lookout for Metrics ---
+class AnomalyIngestView(APIView):
+    # permission_classes = [IsInternalService]
+
+    def post(self, request, *args, **kwargs):
+        serializer = AnomalyIngestSerializer(data=request.data)
+        
+        if not serializer.is_valid():
+            print("ERROR LOG: Anomaly data failed validation.")
+            sys.stdout.flush()
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        
+        print(f"DEBUG LOG: Received anomaly for DS ID: {data['data_source_id']}")
+        sys.stdout.flush()
+
+        # 1. Look up the DataSource
+        try:
+            data_source = DataSource.objects.get(id=data['data_source_id'])
+        except DataSource.DoesNotExist:
+            print(f"ERROR LOG: DataSource ID {data['data_source_id']} not found.")
+            sys.stdout.flush()
+            return Response({"error": "DataSource not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # 2. Create the Insight record with LOOKOUT source
+        try:
+            # Construct a detailed summary/recommendation for the Insight
+            summary = (
+                f"A **Critical Anomaly** was detected in the '{data['metric_name']}' metric "
+                f"at {data['timestamp'].strftime('%Y-%m-%d %H:%M')} with a severity score "
+                f"of {data.get('severity_score', 0.0) * 100:.1f}%. This suggests "
+                f"a highly unusual event requiring immediate investigation."
+            )
+            recommendations = {
+                "investigation": "Immediately check raw metric data around this timestamp.",
+                "analysis": "Compare trend with previous weeks/months to confirm root cause."
+            }
+
+            with transaction.atomic():
+                Insight.objects.create(
+                    data_source=data_source,
+                    source='LOOKOUT', # Set the source correctly
+                    title=data['anomaly_title'],
+                    summary=summary,
+                    recommendations=recommendations # Stored as JSON
+                )
+                
+            print("DEBUG LOG: Anomaly Insight created successfully.")
+            sys.stdout.flush()
+
+        except Exception as e:
+            print(f"CRITICAL ERROR LOG: Anomaly Insight save failed. Error: {e}")
+            sys.stdout.flush()
+            return Response({"error": "Database error saving anomaly insight."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({"message": "Anomaly Insight created."}, status=status.HTTP_201_CREATED)
