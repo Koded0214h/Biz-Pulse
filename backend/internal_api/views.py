@@ -16,7 +16,7 @@ from .permissions import IsInternalService
 
 class BulkMetricCreateView(APIView):
 
-    # permission_classes = [IsInternalService]
+    permission_classes = [IsInternalService]
 
     def post(self, request, *args, **kwargs):
         data = request.data

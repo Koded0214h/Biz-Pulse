@@ -191,6 +191,6 @@ AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
 MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 
 
-INTERNAL_API_SECRET_KEY = os.environ.get('INTERNAL_API_SECRET_KEY', 'raheemah-is-the-best')
+INTERNAL_API_KEY = os.environ.get('INTERNAL_API_SECRET_KEY', 'raheemah-is-the-best')
 
 CORS_ALLOW_ALL_ORIGINS = True
