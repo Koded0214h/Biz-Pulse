@@ -98,8 +98,8 @@ class AlertViewSetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Alert
-        fields = ['id', 'insight', 'severity', 'status', 'details_json', 'created_at', 'acknowledged_at']
-        read_only_fields = ['insight', 'created_at', 'acknowledged_at']
+        fields = ['id', 'insight', 'severity', 'status', 'details_json', 'acknowledged_at']
+        read_only_fields = ['insight', 'acknowledged_at']
         
 class PredictionDataSerializer(serializers.Serializer):
     date = serializers.DateField()
@@ -117,3 +117,8 @@ class ForecastPredictionSerializer(serializers.ModelSerializer):
         model = ForecastPrediction
         fields = ['id', 'data_source', 'metric_name', 'prediction_time', 'prediction_data', 'created_at']
         read_only_fields = fields # All fields should be read-only for retrieval
+
+class ForecastPredictionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ForecastPrediction
+        fields = '__all__'

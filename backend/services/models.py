@@ -50,6 +50,11 @@ class Alert(models.Model):
     sent = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
     recipient = models.CharField(max_length=255, blank=True, null=True)  # email or phone
+    
+    severity = models.IntegerField(default=5, help_text="Severity score, e.g., from 1 (low) to 10 (critical)")
+    status = models.CharField(max_length=20, default='PENDING', choices=[('PENDING', 'Pending'), ('SENT', 'Sent'), ('FAILED', 'Failed')])
+    details_json = models.JSONField(blank=True, null=True, help_text="Detailed alert metadata.")
+    acknowledged_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.type} alert for {self.insight.title} sent={self.sent}"
