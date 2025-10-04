@@ -22,8 +22,11 @@ class UploadDataView(APIView):
         if not file_obj:
             return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Save directly to S3
-        file_name = default_storage.save(file_obj.name, file_obj)
+        # ✅ Ensure the file goes to the correct prefix
+        file_path = f"raw-uploads/{file_obj.name}"
+
+        # Save directly to S3 under that folder
+        file_name = default_storage.save(file_path, file_obj)
         file_url = default_storage.url(file_name)
 
         return Response({
@@ -31,7 +34,7 @@ class UploadDataView(APIView):
             "file_name": file_name,
             "file_url": file_url
         }, status=status.HTTP_201_CREATED)
-        
+
         
 class MetricViewSet(viewsets.ReadOnlyModelViewSet):
     """
