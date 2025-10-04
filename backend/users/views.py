@@ -37,6 +37,7 @@ class ProfileView(generics.RetrieveAPIView):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
+@csrf_exempt
 def register_test_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -73,6 +74,7 @@ def register_test_view(request):
             <button type='submit'>Register</button>
         </form>
     """)
+
 
 @csrf_exempt
 def login_test_view(request):
