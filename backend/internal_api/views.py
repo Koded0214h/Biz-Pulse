@@ -124,7 +124,7 @@ class BulkMetricCreateView(APIView):
 
 # --- NEW: Anomaly Ingest View for Lookout for Metrics ---
 class AnomalyIngestView(APIView):
-    # permission_classes = [IsInternalService]
+    permission_classes = [IsInternalService]
 
     def post(self, request, *args, **kwargs):
         serializer = AnomalyIngestSerializer(data=request.data)

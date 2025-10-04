@@ -15,7 +15,7 @@ from core.models import DataSource
 from rest_framework.test import APIRequestFactory
 
 # --- 0. PASTE YOUR TOKEN HERE ---
-MY_INTERNAL_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU5MzUwMDExLCJpYXQiOjE3NTkzNDk3MTQsImp0aSI6IjEwOWE3OThmZTk2MjRkYTBhMWQ0MTJhMTQ4MzkxODM5IiwidXNlcl9pZCI6IjIifQ.CtF7KDfu3uaTntHkhKTLKs0mUV5gMr0INBLXkGrcfH0'
+MY_INTERNAL_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU5Mzg2NjQ5LCJpYXQiOjE3NTkzODYzNDksImp0aSI6IjQxODg1NzNlZGIwMzQ4M2I5YTM2Y2Q1NzJiMGZjNjUxIiwidXNlcl9pZCI6IjEifQ.YonQQNapvlSOB5qxpHMuoN0LtuDjmR_hnqQlRW-3rmY'
 # --------------------------------
 
 # --- 1. Simulation Data ---

@@ -17,7 +17,7 @@ from core.models import DataSource
 
 # --- 0. PASTE YOUR TOKEN HERE ---
 # Retrieve your JWT access token and paste it here.
-MY_INTERNAL_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU5MzQ3ODc0LCJpYXQiOjE3NTkzNDc1NzQsImp0aSI6ImE4YTc5NTY0ZTkzOTQwMjZiMjU1OTVmMDQ2MWZhZDMwIiwidXNlcl9pZCI6IjEifQ.hSr_IQ3D7WT33hmFVFOdQ0G9KqRYQQCgFrFplr7-U_U' 
+MY_INTERNAL_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU5Mzg2NjQ5LCJpYXQiOjE3NTkzODYzNDksImp0aSI6IjQxODg1NzNlZGIwMzQ4M2I5YTM2Y2Q1NzJiMGZjNjUxIiwidXNlcl9pZCI6IjEifQ.YonQQNapvlSOB5qxpHMuoN0LtuDjmR_hnqQlRW-3rmY'
 # --------------------------------
 
 TEST_ANOMALY_DATA = {
