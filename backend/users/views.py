@@ -75,6 +75,7 @@ def register_test_view(request):
         </form>
     """)
 
+API_BASE = "https://your-app-name.onrender.com"
 
 @csrf_exempt
 def login_test_view(request):
@@ -83,7 +84,7 @@ def login_test_view(request):
         password = request.POST.get("password")
 
         # Point this to your deployed or local JWT login endpoint
-        api_url = request.build_absolute_uri("/api/v1/auth/login/")
+        api_url = f"{API_BASE}/api/v1/auth/login/"  
 
         try:
             response = requests.post(api_url, json={"username": username, "password": password})
