@@ -6,6 +6,7 @@ from .views import (
     ForecastPredictionViewSet, NaturalLanguageQueryView
 )
 
+from . import views
 
 router = DefaultRouter()
 router.register(r'metrics', MetricViewSet, basename='metrics')
@@ -17,4 +18,9 @@ urlpatterns = [
     path('', include(router.urls)),
     path("upload/", UploadDataView.as_view(), name="upload-data"),
     path('q/ask/', NaturalLanguageQueryView.as_view(), name='natural-language-query'),
+    
+    path('charts/sales/', views.SalesDataView.as_view(), name='sales-chart'),
+    path('charts/summary/', views.MetricsSummaryView.as_view(), name='metrics-summary'),
+    path('charts/inventory/', views.InventoryTrendsView.as_view(), name='inventory-chart'),
+    path('charts/customers/', views.CustomerMetricsView.as_view(), name='customer-chart'),
 ]

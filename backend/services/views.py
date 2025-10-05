@@ -1,4 +1,5 @@
 from django.shortcuts import render
+import pandas as pd
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,6 +8,10 @@ from rest_framework import status
 from django.core.files.storage import default_storage
 import boto3
 import os
+import io
+from django.db.models import Sum, Avg, Count
+from django.utils import timezone
+from datetime import timedelta
 
 from .models import Metric, Insight, Alert, ForecastPrediction
 from .serializers import (
@@ -120,3 +125,192 @@ class NaturalLanguageQueryView(APIView):
                 "error": "Failed to process your question",
                 "details": str(e)
             }, status=500)
+            
+            
+class SalesDataView(APIView):
+    """Serve sales data for line charts"""
+    permission_classes = [AllowAny]
+    
+    def get(self, request, *args, **kwargs):
+        try:
+            # Get data from S3 or database
+            sales_data = self.get_sales_data()
+            
+            return Response({
+                "labels": sales_data['dates'],
+                "datasets": [{
+                    "label": "Daily Sales",
+                    "data": sales_data['values'],
+                    "borderColor": 'rgb(75, 192, 192)',
+                    "backgroundColor": 'rgba(75, 192, 192, 0.2)',
+                }]
+            })
+            
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+    
+    def get_sales_data(self):
+        # Example: Read from S3 CSV files
+        s3 = boto3.client('s3')
+        
+        # Get all sales CSV files
+        response = s3.list_objects_v2(
+            Bucket='bizpulse-data-lake',
+            Prefix='raw-uploads/'
+        )
+        
+        all_data = []
+        for obj in response.get('Contents', []):
+            if obj['Key'].endswith('.csv'):
+                file_obj = s3.get_object(Bucket='bizpulse-data-lake', Key=obj['Key'])
+                df = pd.read_csv(io.BytesIO(file_obj['Body'].read()))
+                
+                # Filter for sales data
+                sales_df = df[df['metric_name'] == 'Daily_Sales']
+                all_data.append(sales_df)
+        
+        if all_data:
+            combined_df = pd.concat(all_data)
+            return {
+                'dates': combined_df['timestamp'].tolist(),
+                'values': combined_df['value'].tolist()
+            }
+        else:
+            # Return sample data if no real data
+            return {
+                'dates': ['2025-01-01', '2025-01-02', '2025-01-03'],
+                'values': [1500, 1620, 1450]
+            }
+
+class MetricsSummaryView(APIView):
+    """Serve summary metrics for dashboard cards"""
+    permission_classes = [AllowAny]
+    
+    def get(self, request, *args, **kwargs):
+        try:
+            summary = self.calculate_metrics_summary()
+            
+            return Response({
+                "total_sales": summary['total_sales'],
+                "average_conversion": summary['avg_conversion'],
+                "sales_growth": summary['sales_growth'],
+                "active_metrics": summary['active_metrics']
+            })
+            
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+    
+    def calculate_metrics_summary(self):
+        # Calculate from your data
+        s3 = boto3.client('s3')
+        
+        # This would aggregate data from all CSV files
+        # For now, return sample data
+        return {
+            'total_sales': 4570.75,
+            'avg_conversion': 0.025,
+            'sales_growth': 8.2,  # percentage
+            'active_metrics': 3
+        }
+
+class InventoryTrendsView(APIView):
+    """Serve inventory data for bar charts"""
+    permission_classes = [AllowAny]
+    
+    def get(self, request, *args, **kwargs):
+        # Sample inventory data structure
+        inventory_data = {
+            "labels": ["Product A", "Product B", "Product C", "Product D"],
+            "datasets": [{
+                "label": "Current Stock",
+                "data": [120, 150, 80, 200],
+                "backgroundColor": [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 205, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)'
+                ]
+            }]
+        }
+        return Response(inventory_data)
+
+class CustomerMetricsView(APIView):
+    """Serve customer data for pie charts"""
+    permission_classes = [AllowAny]
+    
+    def get(self, request, *args, **kwargs):
+        # Sample customer segmentation
+        customer_data = {
+            "labels": ["New Customers", "Returning Customers", "VIP Customers"],
+            "datasets": [{
+                "data": [45, 30, 25],
+                "backgroundColor": [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 205, 86, 0.8)'
+                ]
+            }]
+        }
+        return Response(customer_data)
+    
+class EnhancedSalesDataView(APIView):
+    permission_classes = [AllowAny]
+    
+    def get(self, request, *args, **kwargs):
+        # Get timeframe from query params
+        timeframe = request.GET.get('timeframe', 'weekly')  # daily, weekly, monthly
+        
+        try:
+            sales_data = self.get_processed_sales_data(timeframe)
+            
+            return Response({
+                "timeframe": timeframe,
+                "chart_type": "line",
+                "data": sales_data
+            })
+            
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+    
+    def get_processed_sales_data(self, timeframe):
+        s3 = boto3.client('s3')
+        
+        # Aggregate data based on timeframe
+        all_sales = []
+        
+        response = s3.list_objects_v2(Bucket='bizpulse-data-lake', Prefix='raw-uploads/')
+        
+        for obj in response.get('Contents', []):
+            if obj['Key'].endswith('.csv'):
+                file_obj = s3.get_object(Bucket='bizpulse-data-lake', Key=obj['Key'])
+                df = pd.read_csv(io.BytesIO(file_obj['Body'].read()))
+                
+                # Process sales data
+                sales_df = df[df['metric_name'] == 'Daily_Sales']
+                sales_df['timestamp'] = pd.to_datetime(sales_df['timestamp'])
+                
+                # Group by timeframe
+                if timeframe == 'daily':
+                    grouped = sales_df.groupby(sales_df['timestamp'].dt.date)['value'].sum()
+                elif timeframe == 'weekly':
+                    grouped = sales_df.groupby(sales_df['timestamp'].dt.isocalendar().week)['value'].sum()
+                elif timeframe == 'monthly':
+                    grouped = sales_df.groupby(sales_df['timestamp'].dt.to_period('M'))['value'].sum()
+                
+                all_sales.append(grouped)
+        
+        # Combine and format for charts
+        if all_sales:
+            # Your data processing logic here
+            pass
+        
+        # Fallback to sample data
+        return {
+            "labels": ["Week 1", "Week 2", "Week 3", "Week 4"],
+            "datasets": [{
+                "label": "Sales Revenue",
+                "data": [4500, 5200, 4800, 6100],
+                "borderColor": 'rgb(59, 130, 246)',
+                "backgroundColor": 'rgba(59, 130, 246, 0.1)',
+            }]
+        }
