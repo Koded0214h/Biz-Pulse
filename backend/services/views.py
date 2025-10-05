@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.core.files.storage import default_storage
+import boto3
 
 from .models import Metric, Insight, Alert, ForecastPrediction
 from .serializers import (
@@ -19,22 +20,34 @@ from .serializers import (
 class UploadDataView(APIView):
     def post(self, request, *args, **kwargs):
         file_obj = request.FILES.get("file")
+        job_id = request.data.get("job_id", "1")  # Get job_id from request
+        
         if not file_obj:
             return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
         
-        # ✅ Ensure the file goes to the correct prefix
         file_path = f"raw-uploads/{file_obj.name}"
 
-        # Save directly to S3 under that folder
-        file_name = default_storage.save(file_path, file_obj)
-        file_url = default_storage.url(file_name)
+        # Save to S3 with metadata using boto3 directly
+        s3 = boto3.client('s3')
+        s3.upload_fileobj(
+            file_obj,
+            'your-bucket-name',  # Make sure this matches your actual bucket
+            file_path,
+            ExtraArgs={
+                'Metadata': {
+                    'django-job-id': str(job_id)  # Ensure it's a string
+                }
+            }
+        )
 
+        file_url = f"https://your-bucket-name.s3.amazonaws.com/{file_path}"
+        
         return Response({
             "message": "File uploaded successfully!",
-            "file_name": file_name,
-            "file_url": file_url
+            "file_path": file_path,
+            "file_url": file_url,
+            "job_id": job_id
         }, status=status.HTTP_201_CREATED)
-
         
 class MetricViewSet(viewsets.ReadOnlyModelViewSet):
     """
