@@ -1,34 +1,35 @@
+// App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
+import { AuthProvider } from './contexts/AuthContext';
+import Dashboard from './pages/Dashboard';
+import Alerts from './pages/Alerts';
+import Profile from './pages/Profile';
+import SalesDeepDive from './pages/SalesDeepDive';
+import DataConnections from './pages/DataConnections';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import Insights from './pages/Insights';
-import Analytics from './pages/Analytics';
-import Anomalies from './pages/Anomalies';
-import DataSources from './pages/DataSources';
-import Reports from './pages/Reports';
-import Settings from './pages/Settings';
+import LandingPage from './pages/LandingPage';
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/insights" element={<Insights />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/anomalies" element={<Anomalies />} />
-          <Route path="/data-sources" element={<DataSources />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings" element={<Settings />} />
-        </Routes>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="App">
+<Routes>
+  <Route path="/" element={<Dashboard />} />
+  <Route path="/dashboard" element={<Dashboard />} />
+  <Route path="/sales" element={<SalesDeepDive />} />
+  <Route path="/alerts" element={<Alerts />} />
+  <Route path="/profile" element={<Profile />} />
+  <Route path="/connections" element={<DataConnections />} />
+  <Route path="/login" element={<Login />} />
+  <Route path="/register" element={<Register />} />
+  <Route path="/landing" element={<LandingPage />} />
+</Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
