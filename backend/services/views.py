@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.core.files.storage import default_storage
 import boto3
+import os
 
 from .models import Metric, Insight, Alert, ForecastPrediction
 from .serializers import (
