@@ -98,8 +98,8 @@ class ForecastPredictionViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
     
 
+# services/views.py
 class NaturalLanguageQueryView(APIView):
-    permission_classes = [AllowAny]
     def post(self, request, *args, **kwargs):
         question = request.data.get('question')
         
@@ -108,6 +108,7 @@ class NaturalLanguageQueryView(APIView):
         
         try:
             q_service = AmazonQService()
+            # ⚠️ No user_id parameter needed for anonymous access
             result = q_service.ask_question(question=question)
             
             return Response(result)
