@@ -100,6 +100,8 @@ class ForecastPredictionViewSet(viewsets.ReadOnlyModelViewSet):
 
 # services/views.py
 class NaturalLanguageQueryView(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request, *args, **kwargs):
         question = request.data.get('question')
         
