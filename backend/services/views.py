@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 from django.core.files.storage import default_storage
 import boto3
@@ -15,6 +15,7 @@ from .serializers import (
     AlertViewSetSerializer,
     ForecastPredictionSerializer
 )
+from .amazon_q_service import AmazonQService
 
 # Create your views here.
 
@@ -95,3 +96,24 @@ class ForecastPredictionViewSet(viewsets.ReadOnlyModelViewSet):
         if data_source_id is not None:
             queryset = queryset.filter(data_source_id=data_source_id)
         return queryset
+    
+
+class NaturalLanguageQueryView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request, *args, **kwargs):
+        question = request.data.get('question')
+        
+        if not question:
+            return Response({"error": "Question is required"}, status=400)
+        
+        try:
+            q_service = AmazonQService()
+            result = q_service.ask_question(question=question)
+            
+            return Response(result)
+            
+        except Exception as e:
+            return Response({
+                "error": "Failed to process your question",
+                "details": str(e)
+            }, status=500)
