@@ -20,27 +20,32 @@ from .serializers import (
 class UploadDataView(APIView):
     def post(self, request, *args, **kwargs):
         file_obj = request.FILES.get("file")
-        job_id = request.data.get("job_id", "1")  # Get job_id from request
+        job_id = request.data.get("job_id", "1")
         
         if not file_obj:
             return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
         
         file_path = f"raw-uploads/{file_obj.name}"
 
-        # Save to S3 with metadata using boto3 directly
+        # Use the actual bucket name from environment variables
+        bucket_name = os.getenv("AWS_STORAGE_BUCKET_NAME")
+        
+        if not bucket_name:
+            return Response({"error": "S3 bucket not configured"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         s3 = boto3.client('s3')
         s3.upload_fileobj(
             file_obj,
-            'your-bucket-name',  # Make sure this matches your actual bucket
+            bucket_name,  # ✅ Use actual bucket name from env
             file_path,
             ExtraArgs={
                 'Metadata': {
-                    'django-job-id': str(job_id)  # Ensure it's a string
+                    'django-job-id': str(job_id)
                 }
             }
         )
 
-        file_url = f"https://your-bucket-name.s3.amazonaws.com/{file_path}"
+        file_url = f"https://{bucket_name}.s3.amazonaws.com/{file_path}"
         
         return Response({
             "message": "File uploaded successfully!",
