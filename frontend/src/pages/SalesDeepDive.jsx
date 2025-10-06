@@ -1,5 +1,5 @@
 // pages/SalesDeepDive.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import {
   Chart as ChartJS,
@@ -14,6 +14,7 @@ import {
   Filler
 } from 'chart.js';
 import { Line, Bar } from 'react-chartjs-2';
+import { authAPI } from '../api';
 
 ChartJS.register(
   CategoryScale,
@@ -32,43 +33,68 @@ const SalesDeepDive = () => {
   const [selectedSegment, setSelectedSegment] = useState('all');
   const [selectedChannel, setSelectedChannel] = useState('all');
 
-  const salesData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    revenue: [385000, 420000, 398000, 452000, 482019, 515000, 538000, 512000, 545000, 568000, 592000, 615000],
-  };
+  const [salesData, setSalesData] = useState(null);
+  const [topProductsData, setTopProductsData] = useState(null);
+  const [salesTableData, setSalesTableData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const topProducts = [
-    { name: 'Product Alpha', revenue: 1250000, growth: 15.2 },
-    { name: 'Product Bravo', revenue: 980000, growth: 8.7 },
-    { name: 'Product Charlie', revenue: 765000, growth: 22.1 },
-    { name: 'Product Delta', revenue: 543000, growth: -3.4 },
-    { name: 'Product Echo', revenue: 432000, growth: 12.8 },
-  ];
+  useEffect(() => {
+    const fetchSalesData = async () => {
+      try {
+        const [salesResponse, topProductsResponse] = await Promise.all([
+          authAPI.getSalesData(),
+          authAPI.getTopProducts()
+        ]);
 
-  const salesTableData = [
-    { id: '#10248', date: '2024-08-01', customer: 'Vine et alcools Chevalier', product: 'Product Alpha', channel: 'Online', amount: 322.00 },
-    { id: '#10249', date: '2024-08-01', customer: 'Toms Spezialitäten', product: 'Product Bravo', channel: 'Retail', amount: 198.50 },
-    { id: '#10250', date: '2024-08-02', customer: 'Hanaal Games', product: 'Product Charlie', channel: 'Online', amount: 85.40 },
-    { id: '#10251', date: '2024-08-02', customer: 'Victuallies en stock', product: 'Product Alpha', channel: 'Direct', amount: 512.20 },
-    { id: '#10252', date: '2024-08-03', customer: 'Suprimes délices', product: 'Product Echo', channel: 'Retail', amount: 450.00 },
-  ];
+        setSalesData(salesResponse);
+        setTopProductsData(topProductsResponse);
 
-  const revenueChartData = {
+        // For demo, set salesTableData with static data or fetch from backend if available
+        setSalesTableData([
+          { id: '#10248', date: '2024-08-01', customer: 'Vine et alcools Chevalier', product: 'Product Alpha', channel: 'Online', amount: 322.00 },
+          { id: '#10249', date: '2024-08-01', customer: 'Toms Spezialitäten', product: 'Product Bravo', channel: 'Retail', amount: 198.50 },
+          { id: '#10250', date: '2024-08-02', customer: 'Hanaal Games', product: 'Product Charlie', channel: 'Online', amount: 85.40 },
+          { id: '#10251', date: '2024-08-02', customer: 'Victuallies en stock', product: 'Product Alpha', channel: 'Direct', amount: 512.20 },
+          { id: '#10252', date: '2024-08-03', customer: 'Suprimes délices', product: 'Product Echo', channel: 'Retail', amount: 450.00 },
+        ]);
+      } catch (error) {
+        console.error('Error fetching sales data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSalesData();
+  }, []);
+
+  const revenueChartData = salesData ? {
     labels: salesData.labels,
-    datasets: [
-      {
-        label: 'Revenue',
-        data: salesData.revenue,
-        borderColor: '#3B82F6',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: '#3B82F6',
-        pointBorderColor: '#ffffff',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-      },
-    ],
+    datasets: [{
+      label: 'Revenue',
+      data: salesData.datasets[0].data,
+      borderColor: '#3B82F6',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#3B82F6',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 2,
+      pointRadius: 4,
+    }],
+  } : {
+    labels: [],
+    datasets: [{
+      label: 'Revenue',
+      data: [],
+      borderColor: '#3B82F6',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#3B82F6',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 2,
+      pointRadius: 4,
+    }],
   };
 
   const revenueChartOptions = {
@@ -118,16 +144,22 @@ const SalesDeepDive = () => {
     },
   };
 
-  const topProductsChartData = {
-    labels: topProducts.map(product => product.name),
-    datasets: [
-      {
-        label: 'Revenue',
-        data: topProducts.map(product => product.revenue),
-        backgroundColor: '#3B82F6',
-        borderRadius: 6,
-      },
-    ],
+  const topProductsChartData = topProductsData ? {
+    labels: topProductsData.labels,
+    datasets: [{
+      label: 'Revenue',
+      data: topProductsData.datasets[0].data,
+      backgroundColor: '#3B82F6',
+      borderRadius: 6,
+    }],
+  } : {
+    labels: [],
+    datasets: [{
+      label: 'Revenue',
+      data: [],
+      backgroundColor: '#3B82F6',
+      borderRadius: 6,
+    }],
   };
 
   const topProductsChartOptions = {
@@ -187,6 +219,16 @@ const SalesDeepDive = () => {
     }).format(amount);
   };
 
+  if (loading) {
+    return (
+      <Layout activePage="sales">
+        <div className="p-8">
+          <div className="text-center">Loading sales data...</div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout activePage="sales">
       <div className="p-8">
@@ -201,7 +243,7 @@ const SalesDeepDive = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Product Line</label>
-              <select 
+              <select
                 value={selectedProductLine}
                 onChange={(e) => setSelectedProductLine(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -212,10 +254,10 @@ const SalesDeepDive = () => {
                 <option value="charlie">Product Charlie</option>
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Customer Segment</label>
-              <select 
+              <select
                 value={selectedSegment}
                 onChange={(e) => setSelectedSegment(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -226,10 +268,10 @@ const SalesDeepDive = () => {
                 <option value="startup">Startup</option>
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Sales Channel</label>
-              <select 
+              <select
                 value={selectedChannel}
                 onChange={(e) => setSelectedChannel(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -307,13 +349,13 @@ const SalesDeepDive = () => {
               <Bar data={topProductsChartData} options={topProductsChartOptions} />
             </div>
             <div className="mt-4 space-y-3">
-              {topProducts.map((product, index) => (
+              {topProductsData?.products?.map((product, index) => (
                 <div key={product.name} className="flex items-center justify-between py-2">
                   <div className="flex items-center space-x-3">
                     <div className={`w-3 h-3 rounded-full ${
-                      index === 0 ? 'bg-blue-500' : 
-                      index === 1 ? 'bg-green-500' : 
-                      index === 2 ? 'bg-purple-500' : 
+                      index === 0 ? 'bg-blue-500' :
+                      index === 1 ? 'bg-green-500' :
+                      index === 2 ? 'bg-purple-500' :
                       index === 3 ? 'bg-yellow-500' : 'bg-red-500'
                     }`}></div>
                     <span className="font-medium text-gray-700">{product.name}</span>
@@ -348,7 +390,7 @@ const SalesDeepDive = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                 <div className="flex items-center space-x-3">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2">
@@ -361,7 +403,7 @@ const SalesDeepDive = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
                 <div className="flex items-center space-x-3">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2">

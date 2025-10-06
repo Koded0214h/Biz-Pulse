@@ -24,4 +24,5 @@ urlpatterns = [
     path('charts/inventory/', views.InventoryTrendsView.as_view(), name='inventory-chart'),
     path('charts/customers/', views.CustomerMetricsView.as_view(), name='customer-chart'),
     path('charts/enhanced-sales/', views.EnhancedSalesDataView.as_view(), name='enhanced-sales-chart'),
+    path('charts/top-products/', views.TopProductsView.as_view(), name='top-products-chart'),
 ]

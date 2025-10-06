@@ -82,6 +82,20 @@ export const authAPI = {
     const response = await api.get('/services/charts/sales/');
     return response.data;
   },
+
+  getTopProducts: async () => {
+    const response = await api.get('/services/charts/top-products/');
+    return response.data;
+  },
+
+  uploadData: async (formData) => {
+    const response = await api.post('/upload/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
 };
 
 export default api;

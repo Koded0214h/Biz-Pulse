@@ -25,22 +25,34 @@ ChartJS.register(
 );
 
 const RevenueChart = ({ chartData }) => {
-  const data = chartData || {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    datasets: [
-      {
-        label: 'Revenue',
-        data: [8500, 9200, 10100, 11400, 10800, 12450, 13200, 12500, 13800, 14200, 14800, 15200],
-        borderColor: '#3B82F6',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: '#3B82F6',
-        pointBorderColor: '#ffffff',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-      },
-    ],
+  const data = chartData ? {
+    labels: chartData.labels,
+    datasets: [{
+      label: 'Revenue',
+      data: chartData.datasets[0].data,
+      borderColor: '#3B82F6',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#3B82F6',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 2,
+      pointRadius: 4,
+    }],
+  } : {
+    labels: [],
+    datasets: [{
+      label: 'Revenue',
+      data: [],
+      borderColor: '#3B82F6',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#3B82F6',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 2,
+      pointRadius: 4,
+    }],
   };
 
   const options = {

@@ -1,10 +1,13 @@
 // pages/DataConnections.jsx
 import React, { useState } from 'react';
 import Layout from '../components/Layout';
+import { authAPI } from '../api';
 
 const DataConnections = () => {
   const [activeCategory, setActiveCategory] = useState('all');
-  const [fileUploading, setFileUploading] = useState(false);
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState('');
 
   const connectedPlatforms = [
     {
@@ -136,13 +139,30 @@ const DataConnections = () => {
     }
   };
 
-  const handleFileUpload = () => {
-    setFileUploading(true);
-    // Simulate file upload
-    setTimeout(() => {
-      setFileUploading(false);
-      alert('File uploaded successfully!');
-    }, 2000);
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+    setUploadMessage('');
+  };
+
+  const handleFileUpload = async () => {
+    if (!file) {
+      setUploadMessage('Please select a file to upload.');
+      return;
+    }
+    setUploading(true);
+    setUploadMessage('');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('job_id', '1'); // You can generate or manage job IDs as needed
+
+      const data = await authAPI.uploadData(formData);
+      setUploadMessage('Upload successful: ' + data.message);
+    } catch (error) {
+      setUploadMessage('Upload error: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const filteredIntegrations = availableIntegrations.filter(integration => 
@@ -164,31 +184,30 @@ const DataConnections = () => {
             {/* File Upload */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Upload a File</h3>
-              <div 
-                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
-                onClick={handleFileUpload}
-              >
-                {fileUploading ? (
-                  <div className="flex flex-col items-center space-y-3">
-                    <svg className="animate-spin h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                    </svg>
-                    <span className="text-gray-600">Uploading...</span>
-                  </div>
-                ) : (
-                  <>
-                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    <div className="mt-4">
-                      <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-                        Add Integration
-                      </button>
-                      <p className="mt-2 text-sm text-gray-500">CSV, Excel, or JSON files</p>
-                    </div>
-                  </>
+              <div className="space-y-4">
+                <input
+                  type="file"
+                  onChange={handleFileChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  accept=".csv,.xlsx,.json"
+                />
+                <button
+                  onClick={handleFileUpload}
+                  disabled={uploading || !file}
+                  className={`w-full px-4 py-2 rounded-lg font-medium transition-colors ${
+                    uploading || !file
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  }`}
+                >
+                  {uploading ? 'Uploading...' : 'Upload to AWS S3'}
+                </button>
+                {uploadMessage && (
+                  <p className={`text-sm ${uploadMessage.includes('successful') ? 'text-green-600' : 'text-red-600'}`}>
+                    {uploadMessage}
+                  </p>
                 )}
+                <p className="text-xs text-gray-500">Supported formats: CSV, Excel, JSON</p>
               </div>
             </div>
 
