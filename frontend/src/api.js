@@ -116,6 +116,11 @@ export const authAPI = {
     const response = await api.get('/services/forecasts/');
     return response.data;
   },
+
+  logout: async (refreshToken) => {
+    const response = await api.post('/logout/', { refresh_token: refreshToken });
+    return response.data;
+  },
 };
 
 export default api;

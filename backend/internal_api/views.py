@@ -79,10 +79,12 @@ class BulkMetricCreateView(APIView):
                 metrics_to_create = [
                     Metric(
                         ingestion_job=job,
-                        data_source_id=metric_data['data_source_id'], # <-- Now this key exists
+                        data_source_id=metric_data['data_source_id'],
                         name=metric_data['name'],
                         value=metric_data['value'],
-                        timestamp=metric_data['timestamp']
+                        timestamp=metric_data['timestamp'],
+                        # Add product to metadata if it exists
+                        metadata={'product': metric_data.get('product')} if metric_data.get('product') else {}
                     )
                     for metric_data in serializer.validated_data
                 ]

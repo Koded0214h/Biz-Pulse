@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { authAPI } from '../api';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [logoutLoading, setLogoutLoading] = useState(false);
   const [formData, setFormData] = useState({
     business_name: '',
     phone_number: '',
@@ -12,6 +15,8 @@ const Profile = () => {
     industry: '',
     receive_alerts: true,
   });
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -47,6 +52,18 @@ const Profile = () => {
     e.preventDefault();
     // Implement profile update API call here if available
     alert('Profile update functionality not implemented yet.');
+  };
+
+  const handleLogout = async () => {
+    setLogoutLoading(true);
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      setLogoutLoading(false);
+    }
   };
 
   if (loading) {
@@ -135,12 +152,22 @@ const Profile = () => {
               Receive Alerts
             </label>
           </div>
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-          >
-            Save Changes
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+            >
+              Save Changes
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={logoutLoading}
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {logoutLoading ? 'Logging out...' : 'Logout'}
+            </button>
+          </div>
         </form>
       </div>
     </Layout>

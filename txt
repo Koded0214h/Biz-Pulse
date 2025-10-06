@@ -4,3 +4,6 @@
 
 // Make sure you update the timestamp in the dataset `business data.csv`.
 // fix the upload endpoint
+
+
+It is a free tier, $300 in credit for registering

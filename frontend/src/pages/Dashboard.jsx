@@ -214,26 +214,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-
-        {/* Additional Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-          {/* Inventory Chart */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Inventory Levels</h3>
-            <div className="h-64 flex items-center justify-center text-gray-500">
-              Inventory chart will be displayed here
-            </div>
-          </div>
-
-          {/* Customer Metrics */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Customer Segmentation</h3>
-            <div className="h-64 flex items-center justify-center text-gray-500">
-              Customer metrics chart will be displayed here
-            </div>
-          </div>
-        </div>
-
+        
         {/* Chatbot toggle button */}
         <button
           onClick={toggleChatbot}
