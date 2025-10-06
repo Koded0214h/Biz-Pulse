@@ -1,10 +1,13 @@
 // pages/Dashboard.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import RevenueChart from '../components/RevenueChart';
+import { useAuth } from '../contexts/AuthContext';
+import { authAPI } from '../api';
 
 const Dashboard = () => {
-  const metrics = [
+  const { user } = useAuth();
+  const [metrics, setMetrics] = useState([
     {
       title: 'Daily Revenue',
       value: '$12,450',
@@ -23,7 +26,53 @@ const Dashboard = () => {
       change: '-1%',
       trend: 'down'
     }
-  ];
+  ]);
+  const [chartData, setChartData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [summaryResponse, salesResponse] = await Promise.all([
+          authAPI.getMetricsSummary(),
+          authAPI.getSalesData()
+        ]);
+
+        // Update metrics
+        const summary = summaryResponse;
+        setMetrics([
+          {
+            title: 'Total Sales',
+            value: `$${summary.total_sales.toLocaleString()}`,
+            change: `+${summary.sales_growth}%`,
+            trend: summary.sales_growth >= 0 ? 'up' : 'down'
+          },
+          {
+            title: 'Conversion Rate',
+            value: `${(summary.average_conversion * 100).toFixed(1)}%`,
+            change: '+2%', // Placeholder, backend doesn't provide change
+            trend: 'up'
+          },
+          {
+            title: 'Active Metrics',
+            value: summary.active_metrics.toString(),
+            change: '0%', // Placeholder
+            trend: 'up'
+          }
+        ]);
+
+        // Update chart data
+        setChartData(salesResponse);
+
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
 
   const recommendations = [
     {
@@ -92,7 +141,9 @@ const Dashboard = () => {
       <div className="p-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Good morning, Acme Inc.</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Good morning, {user?.business_name || 'Your Business'}.
+          </h1>
           <p className="text-gray-600">Here's your business pulse for today</p>
         </div>
 
@@ -118,7 +169,7 @@ const Dashboard = () => {
           {/* Revenue Chart */}
           <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Revenue Trend</h3>
-            <RevenueChart />
+            <RevenueChart chartData={chartData} />
           </div>
 
           {/* Recommendations */}

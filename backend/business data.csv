@@ -1,4 +1,120 @@
 timestamp,metric_name,value
-2025-01-01 10:00:00,Daily_Sales,1500.25
-2025-01-01 10:01:00,Conversion_Rate,0.03
-2025-01-02 10:00:00,Daily_Sales,1620.50
+2024-01-15 09:00:00,Daily_Sales,12500.75
+2024-01-15 09:00:00,Conversion_Rate,2.8
+2024-01-15 09:00:00,Website_Visitors,2850
+2024-01-15 09:00:00,Average_Order_Value,145.50
+2024-01-15 09:00:00,Inventory_Level,1250
+2024-01-15 09:00:00,Customer_Satisfaction,4.2
+2024-01-31 09:00:00,Monthly_Revenue,387500.00
+2024-01-31 09:00:00,New_Customers,425
+2024-01-31 09:00:00,Operating_Costs,287500.00
+
+2024-02-15 09:00:00,Daily_Sales,11800.25
+2024-02-15 09:00:00,Conversion_Rate,2.5
+2024-02-15 09:00:00,Website_Visitors,3120
+2024-02-15 09:00:00,Average_Order_Value,142.80
+2024-02-15 09:00:00,Inventory_Level,980
+2024-02-15 09:00:00,Customer_Satisfaction,4.1
+2024-02-29 09:00:00,Monthly_Revenue,365800.00
+2024-02-29 09:00:00,New_Customers,380
+2024-02-29 09:00:00,Operating_Costs,275200.00
+
+2024-03-15 09:00:00,Daily_Sales,14200.50
+2024-03-15 09:00:00,Conversion_Rate,3.1
+2024-03-15 09:00:00,Website_Visitors,2980
+2024-03-15 09:00:00,Average_Order_Value,152.25
+2024-03-15 09:00:00,Inventory_Level,1100
+2024-03-15 09:00:00,Customer_Satisfaction,4.3
+2024-03-31 09:00:00,Monthly_Revenue,440200.00
+2024-03-31 09:00:00,New_Customers,510
+2024-03-31 09:00:00,Operating_Costs,298500.00
+
+2024-04-15 09:00:00,Daily_Sales,13800.80
+2024-04-15 09:00:00,Conversion_Rate,2.9
+2024-04-15 09:00:00,Website_Visitors,3250
+2024-04-15 09:00:00,Average_Order_Value,148.90
+2024-04-15 09:00:00,Inventory_Level,1050
+2024-04-15 09:00:00,Customer_Satisfaction,4.4
+2024-04-30 09:00:00,Monthly_Revenue,427800.00
+2024-04-30 09:00:00,New_Customers,490
+2024-04-30 09:00:00,Operating_Costs,305000.00
+
+2024-05-15 09:00:00,Daily_Sales,16200.25
+2024-05-15 09:00:00,Conversion_Rate,3.4
+2024-05-15 09:00:00,Website_Visitors,3420
+2024-05-15 09:00:00,Average_Order_Value,158.75
+2024-05-15 09:00:00,Inventory_Level,920
+2024-05-15 09:00:00,Customer_Satisfaction,4.5
+2024-05-31 09:00:00,Monthly_Revenue,502200.00
+2024-05-31 09:00:00,New_Customers,580
+2024-05-31 09:00:00,Operating_Costs,325800.00
+
+2024-06-15 09:00:00,Daily_Sales,15500.60
+2024-06-15 09:00:00,Conversion_Rate,3.2
+2024-06-15 09:00:00,Website_Visitors,3580
+2024-06-15 09:00:00,Average_Order_Value,155.20
+2024-06-15 09:00:00,Inventory_Level,880
+2024-06-15 09:00:00,Customer_Satisfaction,4.3
+2024-06-30 09:00:00,Monthly_Revenue,480500.00
+2024-06-30 09:00:00,New_Customers,540
+2024-06-30 09:00:00,Operating_Costs,318000.00
+
+2024-07-15 09:00:00,Daily_Sales,14800.90
+2024-07-15 09:00:00,Conversion_Rate,3.0
+2024-07-15 09:00:00,Website_Visitors,3720
+2024-07-15 09:00:00,Average_Order_Value,149.80
+2024-07-15 09:00:00,Inventory_Level,950
+2024-07-15 09:00:00,Customer_Satisfaction,4.2
+2024-07-31 09:00:00,Monthly_Revenue,458800.00
+2024-07-31 09:00:00,New_Customers,520
+2024-07-31 09:00:00,Operating_Costs,312500.00
+
+2024-08-15 09:00:00,Daily_Sales,17200.45
+2024-08-15 09:00:00,Conversion_Rate,3.6
+2024-08-15 09:00:00,Website_Visitors,3650
+2024-08-15 09:00:00,Average_Order_Value,165.40
+2024-08-15 09:00:00,Inventory_Level,820
+2024-08-15 09:00:00,Customer_Satisfaction,4.6
+2024-08-31 09:00:00,Monthly_Revenue,533200.00
+2024-08-31 09:00:00,New_Customers,620
+2024-08-31 09:00:00,Operating_Costs,342000.00
+
+2024-09-15 09:00:00,Daily_Sales,18500.75
+2024-09-15 09:00:00,Conversion_Rate,3.8
+2024-09-15 09:00:00,Website_Visitors,3880
+2024-09-15 09:00:00,Average_Order_Value,168.90
+2024-09-15 09:00:00,Inventory_Level,780
+2024-09-15 09:00:00,Customer_Satisfaction,4.7
+2024-09-30 09:00:00,Monthly_Revenue,573500.00
+2024-09-30 09:00:00,New_Customers,680
+2024-09-30 09:00:00,Operating_Costs,358000.00
+
+2024-10-15 09:00:00,Daily_Sales,19200.20
+2024-10-15 09:00:00,Conversion_Rate,3.9
+2024-10-15 09:00:00,Website_Visitors,4020
+2024-10-15 09:00:00,Average_Order_Value,172.50
+2024-10-15 09:00:00,Inventory_Level,720
+2024-10-15 09:00:00,Customer_Satisfaction,4.8
+2024-10-31 09:00:00,Monthly_Revenue,595200.00
+2024-10-31 09:00:00,New_Customers,720
+2024-10-31 09:00:00,Operating_Costs,365000.00
+
+2024-11-15 09:00:00,Daily_Sales,20500.60
+2024-11-15 09:00:00,Conversion_Rate,4.1
+2024-11-15 09:00:00,Website_Visitors,4180
+2024-11-15 09:00:00,Average_Order_Value,178.25
+2024-11-15 09:00:00,Inventory_Level,680
+2024-11-15 09:00:00,Customer_Satisfaction,4.8
+2024-11-30 09:00:00,Monthly_Revenue,635500.00
+2024-11-30 09:00:00,New_Customers,780
+2024-11-30 09:00:00,Operating_Costs,382000.00
+
+2024-12-15 09:00:00,Daily_Sales,22800.90
+2024-12-15 09:00:00,Conversion_Rate,4.5
+2024-12-15 09:00:00,Website_Visitors,4520
+2024-12-15 09:00:00,Average_Order_Value,185.80
+2024-12-15 09:00:00,Inventory_Level,620
+2024-12-15 09:00:00,Customer_Satisfaction,4.9
+2024-12-31 09:00:00,Monthly_Revenue,706800.00
+2024-12-31 09:00:00,New_Customers,850
+2024-12-31 09:00:00,Operating_Costs,405000.00

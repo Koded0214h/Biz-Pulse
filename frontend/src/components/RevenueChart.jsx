@@ -24,8 +24,8 @@ ChartJS.register(
   Filler
 );
 
-const RevenueChart = () => {
-  const data = {
+const RevenueChart = ({ chartData }) => {
+  const data = chartData || {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
     datasets: [
       {

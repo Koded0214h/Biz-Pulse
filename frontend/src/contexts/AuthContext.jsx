@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { authAPI } from '../api';
 
 const AuthContext = createContext();
 
@@ -18,23 +18,30 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     if (token) {
-      // Verify token and set user
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      // Optionally fetch user profile here
+      // Fetch user profile to verify token and set user
+      authAPI.getProfile()
+        .then((userData) => {
+          setUser(userData);
+        })
+        .catch(() => {
+          // Token invalid, clear it
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = async (username, password) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/v1/login/', {
-        username,
-        password,
-      });
-      const { access, refresh, user: userData } = response.data;
+      const data = await authAPI.login(username, password);
+      const { access, refresh, user: userData } = data;
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
       setUser(userData);
       return { success: true };
     } catch (error) {
@@ -44,7 +51,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      await axios.post('http://localhost:8000/api/v1/register/', userData);
+      await authAPI.register(userData);
       return { success: true };
     } catch (error) {
       return { success: false, error: error.response?.data || 'Registration failed' };
@@ -54,7 +61,6 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
-    delete axios.defaults.headers.common['Authorization'];
     setUser(null);
   };
 
