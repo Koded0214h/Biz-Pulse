@@ -68,13 +68,13 @@ const LandingHero = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <a 
-              href="/register" 
+            <Link
+              to="/register" 
               className="bg-orange-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
             >
               <span>Start Free Trial</span>
               <FiArrowRight className="h-5 w-5" />
-            </a>
+            </Link>
             <button className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-900 transition-all duration-200 flex items-center justify-center space-x-2">
               <FiPlay className="h-5 w-5" />
               <span>Watch Demo</span>
