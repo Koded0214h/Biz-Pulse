@@ -73,6 +73,17 @@ BizPulse leverages multiple AWS services to provide a comprehensive AI-powered b
   - Automated insight generation for detected anomalies
   - Integration with alerting system
 
+### 7. **AWS Lambda - Serverless Computing**
+- **Primary Use**: Event-driven processing and microservices
+- **Implementation**:
+  - Serverless functions for data processing workflows
+  - Integration with S3 events and API Gateway
+  - Asynchronous task execution for heavy computations
+- **Features**:
+  - Auto-scaling based on workload
+  - Cost-effective compute for sporadic tasks
+  - Integration with other AWS services via event triggers
+
 ## AWS Configuration
 
 ### Environment Variables Required:
@@ -171,7 +182,7 @@ The frontend is a modern **React** application deployed on **Vercel**, providing
 |-----------|------------|------------|---------|
 | **Backend** | Django REST Framework | Render | API services, AI integration |
 | **Frontend** | React + Vite | Vercel | User interface, dashboards |
-| **Database** | PostgreSQL | Render | Data persistence |
+| **Database** | PostgreSQL | Neon | Data persistence |
 | **File Storage** | Amazon S3 | AWS | Data lake, file uploads |
 | **AI/ML** | Amazon Bedrock, Q Business | AWS | Insights, natural language |
 | **ETL** | AWS Glue | AWS | Data processing |

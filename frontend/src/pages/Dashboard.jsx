@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import RevenueChart from '../components/RevenueChart';
+import Chatbot from '../components/Chatbot';
 import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../api';
 
@@ -29,6 +30,7 @@ const Dashboard = () => {
   ]);
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -136,9 +138,26 @@ const Dashboard = () => {
     }
   };
 
+  const toggleChatbot = () => {
+    setIsChatbotOpen((prev) => !prev);
+  };
+
+  if (loading) {
+    return (
+      <Layout activePage="dashboard">
+        <div className="p-8 flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading your business insights...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout activePage="dashboard">
-      <div className="p-8">
+      <div className="p-8 relative">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
@@ -195,6 +214,39 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Additional Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+          {/* Inventory Chart */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Inventory Levels</h3>
+            <div className="h-64 flex items-center justify-center text-gray-500">
+              Inventory chart will be displayed here
+            </div>
+          </div>
+
+          {/* Customer Metrics */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Customer Segmentation</h3>
+            <div className="h-64 flex items-center justify-center text-gray-500">
+              Customer metrics chart will be displayed here
+            </div>
+          </div>
+        </div>
+
+        {/* Chatbot toggle button */}
+        <button
+          onClick={toggleChatbot}
+          className="fixed bottom-6 right-6 bg-blue-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-blue-700 transition-colors z-40"
+          aria-label="Ask BizPulse AI"
+        >
+          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2z" />
+          </svg>
+        </button>
+
+        {/* Chatbot component */}
+        <Chatbot isOpen={isChatbotOpen} onClose={() => setIsChatbotOpen(false)} />
       </div>
     </Layout>
   );

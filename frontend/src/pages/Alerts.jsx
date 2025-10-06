@@ -1,6 +1,7 @@
 // pages/Alerts.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
+import { authAPI } from '../api';
 
 const Alerts = () => {
   const [filters, setFilters] = useState({
@@ -16,44 +17,89 @@ const Alerts = () => {
     date: ''
   });
 
-  const alerts = [
-    {
-      id: 1,
-      title: 'Unusual Spike in Customer Churn Detected',
-      time: '2 hours ago',
-      description: 'AI analysis indicates a 15% increase in churn rate over the last 48 hours for your "Pro Plan" subscribers.',
-      priority: 'high',
-      type: 'aiInsights',
-      unread: true
-    },
-    {
-      id: 2,
-      title: 'Inventory Alert: Key Product Running Low',
-      time: '1 day ago',
-      description: 'Stock for "Product XYZ" is below the 10-unit threshold.',
-      priority: 'medium',
-      type: 'systemErrors',
-      unread: true
-    },
-    {
-      id: 3,
-      title: 'New Market Opportunity Identified',
-      time: '3 days ago',
-      description: 'AI suggests exploring market expansion into the "Healthcare Tech" sector based on recent trend analysis.',
-      priority: 'low',
-      type: 'opportunities',
-      unread: false
-    },
-    {
-      id: 4,
-      title: 'System Update Successful',
-      time: '5 days ago',
-      description: 'Your BizPulse platform has been updated to the latest version.',
-      priority: 'low',
-      type: 'systemErrors',
-      unread: false
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await authAPI.getInsights();
+        // Sort insights by created_at descending
+        const sortedInsights = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        // Map backend insight data to frontend alert shape
+        const mappedAlerts = sortedInsights.map(insight => ({
+          id: insight.id,
+          title: insight.title,
+          time: formatTimeAgo(new Date(insight.created_at)),
+          description: insight.summary,
+          priority: mapSourceToPriority(insight.source),
+          type: mapSourceToType(insight.source),
+          unread: true, // Mark all as unread for now
+        }));
+        setAlerts(mappedAlerts);
+      } catch (err) {
+        setError('Failed to load alerts. Please try again later.');
+        console.error('Error fetching alerts:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAlerts();
+  }, []);
+
+  const mapSourceToPriority = (source) => {
+    switch (source) {
+      case 'LOOKOUT': return 'high';
+      case 'BEDROCK': return 'medium';
+      case 'FORECAST': return 'low';
+      default: return 'low';
     }
-  ];
+  };
+
+  const mapSourceToType = (source) => {
+    switch (source) {
+      case 'LOOKOUT': return 'aiInsights';
+      case 'BEDROCK': return 'systemErrors';
+      case 'FORECAST': return 'opportunities';
+      default: return 'systemErrors';
+    }
+  };
+
+  const formatTimeAgo = (date) => {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+
+    if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`;
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours} hours ago`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays} days ago`;
+  };
+
+  // Filter alerts based on filters and search
+  const filteredAlerts = alerts.filter(alert => {
+    // Type filter
+    const typeChecked = filters.types[alert.type];
+    if (!typeChecked) return false;
+
+    // Priority filter
+    if (filters.priority !== 'all' && alert.priority !== filters.priority) return false;
+
+    // Search filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      if (!alert.title.toLowerCase().includes(term) && !alert.description.toLowerCase().includes(term)) return false;
+    }
+
+    return true;
+  });
 
   const getPriorityIcon = (priority) => {
     switch (priority) {
@@ -112,6 +158,8 @@ const Alerts = () => {
             <input
               type="text"
               placeholder="Search alerts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             <svg
@@ -177,32 +225,55 @@ const Alerts = () => {
                 <h2 className="text-xl font-semibold text-gray-800">All Alerts</h2>
               </div>
               
-              <div className="divide-y divide-gray-200">
-                {alerts.map((alert) => (
-                  <div key={alert.id} className="p-6 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          {getPriorityIcon(alert.priority)}
-                          <h3 className="font-semibold text-gray-800">{alert.title}</h3>
-                          {alert.unread && (
-                            <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                              New
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-gray-600 mb-3">{alert.description}</p>
-                        <div className="flex items-center space-x-4 text-sm">
-                          <span className="text-gray-500">{alert.time}</span>
-                          <button className="text-blue-600 hover:text-blue-700 font-medium">View Details</button>
-                          <button className="text-gray-500 hover:text-gray-700">Dismiss</button>
-                          <button className="text-gray-500 hover:text-gray-700">Archive</button>
+              {loading ? (
+                <div className="p-6 text-center">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <p className="mt-2 text-gray-600">Loading alerts...</p>
+                </div>
+              ) : error ? (
+                <div className="p-6 text-center">
+                  <p className="text-red-600">{error}</p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-200">
+                  {filteredAlerts.length === 0 ? (
+                    <div className="p-6 text-center text-gray-500">
+                      No alerts match your filters.
+                    </div>
+                  ) : (
+                    filteredAlerts.map((alert) => (
+                      <div key={alert.id} className="p-6 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              {getPriorityIcon(alert.priority)}
+                              <h3 className="font-semibold text-gray-800">{alert.title}</h3>
+                              {alert.unread && (
+                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                                  New
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-gray-600 mb-3">{alert.description}</p>
+                            <div className="flex items-center space-x-4 text-sm">
+                              <span className="text-gray-500">{alert.time}</span>
+                              <button className="text-blue-600 hover:text-blue-700 font-medium">View Details</button>
+                              <button className="text-gray-500 hover:text-gray-700">Dismiss</button>
+                              <button className="text-gray-500 hover:text-gray-700">Archive</button>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    ))
+                  )}
+                </div>
+              )}
 
               <div className="p-6 bg-green-50 border-t border-green-200">
                 <div className="flex items-center space-x-3">

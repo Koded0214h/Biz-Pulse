@@ -89,11 +89,31 @@ export const authAPI = {
   },
 
   uploadData: async (formData) => {
-    const response = await api.post('/upload/', formData, {
+    const response = await api.post('/services/upload/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return response.data;
+  },
+
+  askQuestion: async (question) => {
+    const response = await api.post('/services/q/ask/', { question });
+    return response.data;
+  },
+
+  getAlerts: async () => {
+    const response = await api.get('/services/alerts/');
+    return response.data;
+  },
+
+  getInsights: async () => {
+    const response = await api.get('/services/insights/');
+    return response.data;
+  },
+
+  getForecasts: async () => {
+    const response = await api.get('/services/forecasts/');
     return response.data;
   },
 };

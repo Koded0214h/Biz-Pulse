@@ -1,5 +1,6 @@
 import React from 'react';
 import { FiBarChart2, FiTrendingUp, FiShield, FiUsers, FiArrowRight, FiPlay } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
 
 const LandingHero = () => {
   return (
@@ -33,15 +34,15 @@ const LandingHero = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              <a href="/login" className="text-white/90 hover:text-white transition-colors duration-200">
+              <Link to="/login" className="text-white/90 hover:text-white transition-colors duration-200">
                 Sign In
-              </a>
-              <a 
-                href="/register" 
+              </Link>
+              <Link
+                to="/register" 
                 className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors duration-200 font-medium"
               >
                 Start Free Trial
-              </a>
+              </Link>
             </div>
           </div>
         </div>
