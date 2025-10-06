@@ -1,19 +1,41 @@
 // components/Layout.jsx
-import React from 'react';
+import React, { useState } from 'react';
 
 const Layout = ({ children, activePage }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="flex h-screen bg-white">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 p-6">
-        <div className="flex items-center space-x-2 mb-8">
-          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-            <svg width="20" height="20" viewBox="0 0 24 29" fill="none" stroke="white" strokeWidth="2" >
-              <path d="M21 12h-8l-3-3-3 3H3a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2Z"/>
-              <path d="m6 12 4-4 4 4"/>
-            </svg>
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 p-6 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } md:block`}>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+              <svg width="20" height="20" viewBox="0 0 24 29" fill="none" stroke="white" strokeWidth="2" >
+                <path d="M21 12h-8l-3-3-3 3H3a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2Z"/>
+                <path d="m6 12 4-4 4 4"/>
+              </svg>
+            </div>
+            <h1 className="text-xl font-bold text-gray-800">BizPulse</h1>
           </div>
-          <h1 className="text-xl font-bold text-gray-800">BizPulse</h1>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="md:hidden p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
         </div>
         
 <nav className="space-y-2">
@@ -51,8 +73,23 @@ const Layout = ({ children, activePage }) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        {children}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile header */}
+        <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 12h18M3 6h18M3 18h18"/>
+            </svg>
+          </button>
+          <h1 className="text-lg font-bold text-gray-800">BizPulse</h1>
+          <div className="w-10"></div> {/* Spacer for centering */}
+        </div>
+        <div className="flex-1 overflow-auto">
+          {children}
+        </div>
       </div>
     </div>
   );

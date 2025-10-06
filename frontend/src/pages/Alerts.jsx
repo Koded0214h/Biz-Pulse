@@ -151,10 +151,10 @@ const Alerts = () => {
 
   return (
     <Layout activePage="alerts">
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">BizPulse</h1>
-          <div className="relative w-96">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">BizPulse</h1>
+          <div className="relative w-full sm:w-96">
             <input
               type="text"
               placeholder="Search alerts..."

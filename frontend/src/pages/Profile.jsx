@@ -52,7 +52,7 @@ const Profile = () => {
   if (loading) {
     return (
       <Layout activePage="profile">
-        <div className="p-8">Loading profile...</div>
+        <div className="p-4 sm:p-6 lg:p-8">Loading profile...</div>
       </Layout>
     );
   }
@@ -60,15 +60,15 @@ const Profile = () => {
   if (!profile) {
     return (
       <Layout activePage="profile">
-        <div className="p-8">Failed to load profile.</div>
+        <div className="p-4 sm:p-6 lg:p-8">Failed to load profile.</div>
       </Layout>
     );
   }
 
   return (
     <Layout activePage="profile">
-      <div className="p-8 max-w-lg mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Profile</h1>
+      <div className="p-4 sm:p-6 lg:p-8 max-w-lg sm:max-w-none mx-auto">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6">Profile</h1>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="business_name" className="block text-sm font-medium text-gray-700">

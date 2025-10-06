@@ -1,12 +1,12 @@
-# Fix Insight Model and Analysis Error
+# Mobile Responsiveness for Pages
 
-## Steps to Complete
-
-- [x] Update Insight model in backend/services/models.py: Remove metric FK, add data_source FK, title, summary fields, change text to summary.
-- [x] Update Metric model in backend/services/models.py: Add insight FK.
-- [x] Update serializers in backend/services/serializers.py: Change InsightViewSetSerializer to use summary, add title, data_source, make metrics SerializerMethodField. Update InsightSummarySerializer. Update MetricViewSetSerializer to use 'insight.summary'.
-- [x] Update analysis.py: Change Insight.objects.create to use data_source, title, summary, recommendations.
-Growth-driven Backend Engineer passionate about building scalable, secure, and AI-powered systems. Experienced in designing REST APIs, integrating third-party services, and deploying production-ready platforms. Skilled in Django REST Framework, JWT, Celery, PostgreSQL, and React. Proven ability to lead hackathon teams, ship MVPs under tight deadlines, and deliver real-world fintech, health, and AI solutions.
+## Tasks
+- [x] Update Dashboard.jsx: Change p-8 to p-4 sm:p-6 lg:p-8, text-3xl to text-2xl sm:text-3xl for header and metric values
+- [x] Update SalesDeepDive.jsx: Change p-8 to p-4 sm:p-6 lg:p-8, text-3xl to text-2xl sm:text-3xl
+- [x] Update DataConnections.jsx: Change p-8 to p-4 sm:p-6 lg:p-8, text-3xl to text-2xl sm:text-3xl
+- [x] Update Alerts.jsx: Change p-8 to p-4 sm:p-6 lg:p-8, text-3xl to text-2xl sm:text-3xl, w-96 to w-full sm:w-96 for search
+- [x] Update Profile.jsx: Change p-8 to p-4 sm:p-6 lg:p-8, text-3xl to text-2xl sm:text-3xl, adjust max-w-lg for mobile
+- [ ] Test responsiveness by running the app and checking mobile view
 
 ---
 

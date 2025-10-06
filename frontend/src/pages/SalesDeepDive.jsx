@@ -222,7 +222,7 @@ const SalesDeepDive = () => {
   if (loading) {
     return (
       <Layout activePage="sales">
-        <div className="p-8">
+        <div className="p-4 sm:p-6 lg:p-8">
           <div className="text-center">Loading sales data...</div>
         </div>
       </Layout>
@@ -231,10 +231,10 @@ const SalesDeepDive = () => {
 
   return (
     <Layout activePage="sales">
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Sales Deep Dive</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Sales Deep Dive</h1>
           <p className="text-gray-600">Detailed analysis of your sales performance and trends</p>
         </div>
 
