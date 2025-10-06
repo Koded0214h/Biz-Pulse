@@ -16,16 +16,16 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="App">
-<Routes>
-  <Route path="/dashboard" element={<Dashboard />} />
-  <Route path="/sales" element={<SalesDeepDive />} />
-  <Route path="/alerts" element={<Alerts />} />
-  <Route path="/profile" element={<Profile />} />
-  <Route path="/connections" element={<DataConnections />} />
-  <Route path="/login" element={<Login />} />
-  <Route path="/register" element={<Register />} />
-  <Route path="/" element={<LandingPage />} />
-</Routes>
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/sales" element={<SalesDeepDive />} />
+          <Route path="/alerts" element={<Alerts />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/connections" element={<DataConnections />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<LandingPage />} />
+        </Routes>
         </div>
       </Router>
     </AuthProvider>
