@@ -17,6 +17,7 @@ class Metric(models.Model):
     timestamp = models.DateTimeField()
     ingestion_job = models.ForeignKey(IngestionJob, on_delete=models.SET_NULL, null=True, blank=True)
     insight = models.ForeignKey("Insight", on_delete=models.SET_NULL, null=True, blank=True, related_name="metrics")
+    metadata = models.JSONField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} = {self.value} @ {self.timestamp}"

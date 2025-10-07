@@ -1,37 +1,36 @@
-# test_amazon_q_detailed.py
+# test_amazon_q_products.py
 import requests
 import json
 
-def test_detailed():
+def test_product_questions():
     base_url = "https://biz-pulse-backend.onrender.com/api/v1/services/q/ask/"
     
-    questions = [
-        "What data do you have?",
-        "Show me sales data",
-        "What is in the CSV files?"
+    product_questions = [
+        "What products do I have in my inventory?",
+        "List all the products in my business data",
+        "What are the different products mentioned in the sales data?",
+        "Show me all product names from the CSV files",
+        "What items or products are available in the business metrics?"
     ]
     
-    for question in questions:
-        print(f"\n{'='*60}")
-        print(f"🔍 Question: {question}")
-        print(f"{'='*60}")
+    print("🔍 TESTING PRODUCT-RELATED QUESTIONS")
+    print("=" * 60)
+    
+    for question in product_questions:
+        print(f"\n💼 Question: '{question}'")
+        print("-" * 50)
         
         response = requests.post(base_url, json={"question": question})
         
         if response.status_code == 200:
             data = response.json()
-            print(f"📊 Answer: {data.get('answer')}")
-            print(f"🔧 Error: {data.get('error', 'None')}")
-            print(f"💬 Conversation ID: {data.get('conversation_id', 'None')}")
+            answer = data.get('answer', 'No answer')
+            print(f"🤖 Answer: {answer}")
             
-            sources = data.get('sources', [])
-            print(f"📚 Sources: {len(sources)}")
-            for i, source in enumerate(sources):
-                print(f"   {i+1}. {source.get('title', 'No title')}")
-                print(f"      URL: {source.get('url', 'No URL')}")
+            if data.get('sources'):
+                print(f"📚 Sources: {len(data['sources'])} documents")
         else:
-            print(f"❌ HTTP Error: {response.status_code}")
-            print(f"Response: {response.text}")
+            print(f"❌ Error: {response.status_code}")
 
 if __name__ == "__main__":
-    test_detailed()
+    test_product_questions()

@@ -6,11 +6,9 @@ import { authAPI } from '../api';
 const Alerts = () => {
   const [filters, setFilters] = useState({
     types: {
-      aiInsights: false,
-      systemErrors: true,
-      performanceDips: false,
-      opportunities: false,
-      socialMedia: false,
+      metrics: true,
+      forecast: false,
+      lookout: false,
     },
     priority: 'all',
     status: 'all',
@@ -63,10 +61,10 @@ const Alerts = () => {
 
   const mapSourceToType = (source) => {
     switch (source) {
-      case 'LOOKOUT': return 'aiInsights';
-      case 'BEDROCK': return 'systemErrors';
-      case 'FORECAST': return 'opportunities';
-      default: return 'systemErrors';
+      case 'LOOKOUT': return 'lookout';
+      case 'BEDROCK': return 'metrics';
+      case 'FORECAST': return 'forecast';
+      default: return 'metrics';
     }
   };
 
