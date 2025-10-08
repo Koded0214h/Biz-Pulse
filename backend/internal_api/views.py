@@ -15,7 +15,6 @@ from .permissions import IsInternalService
 
 
 class BulkMetricCreateView(APIView):
-
     permission_classes = [IsInternalService]
 
     def post(self, request, *args, **kwargs):
@@ -42,7 +41,6 @@ class BulkMetricCreateView(APIView):
         # HACKATHON BYPASS: Ensure DataSource ID=1 exists
         # ------------------------------------------------------------------
         try:
-            # This is safe because the ETL script hardcodes data_source_id=1
             ds, _ = DataSource.objects.get_or_create(
                 id=1, 
                 defaults={'name': 'Hackathon Placeholder Source'}
@@ -51,7 +49,6 @@ class BulkMetricCreateView(APIView):
         except Exception as e:
             print(f"WARNING LOG: DataSource get_or_create failed (non-critical): {e}")
             sys.stdout.flush()
-            # If the bypass fails, we must rely on the ID from the payload (if present)
             data_source_id = metrics_data[0].get('data_source_id') if metrics_data else None
 
         # 1. Validate data structure
@@ -76,35 +73,39 @@ class BulkMetricCreateView(APIView):
         # 2. Bulk Create Metrics and Update Job Status
         try:
             with transaction.atomic():
-                metrics_to_create = [
-                    Metric(
+                metrics_to_create = []
+                for metric_data in serializer.validated_data:
+                    # Build metadata with product if it exists
+                    metadata = {}
+                    if metric_data.get('product'):
+                        metadata['product'] = metric_data['product']
+                    
+                    metric = Metric(
                         ingestion_job=job,
                         data_source_id=metric_data['data_source_id'],
                         name=metric_data['name'],
                         value=metric_data['value'],
                         timestamp=metric_data['timestamp'],
-                        # Add product to metadata if it exists
-                        metadata={'product': metric_data.get('product')} if metric_data.get('product') else {}
+                        metadata=metadata if metadata else None  # Only set if not empty
                     )
-                    for metric_data in serializer.validated_data
-                ]
+                    metrics_to_create.append(metric)
+                
                 Metric.objects.bulk_create(metrics_to_create)
                 
                 # Transition status to the next phase
-                job.status = 'METRICS_CREATED'; 
+                job.status = 'METRICS_CREATED'
                 job.save()
             
             print(f"DEBUG LOG: Successfully created {len(metrics_to_create)} metrics.")
             sys.stdout.flush()
 
         except Exception as e:
-            # Critical database error during bulk_create (e.g., constraint violation)
             job.status = 'FAILED'; job.log_details = f"Database error during bulk_create: {e}"; job.save()
             print(f"CRITICAL ERROR LOG: Database transaction failed! Error: {e}")
             sys.stdout.flush()
             raise 
 
-        # 3. PHASE C TRIGGER: Initiate Bedrock Analysis (Simulated)
+        # 3. PHASE C TRIGGER: Initiate Bedrock Analysis
         print("DEBUG LOG: Starting Bedrock analysis trigger...")
         sys.stdout.flush()
         

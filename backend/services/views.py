@@ -32,7 +32,11 @@ class UploadDataView(APIView):
         if not file_obj:
             return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
         
-        file_path = f"raw-uploads/{file_obj.name}"
+        # Validate file type
+        if not file_obj.name.endswith('.csv'):
+            return Response({"error": "Only CSV files are supported"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        file_path = f"raw-data/{file_obj.name}"
 
         # Use the actual bucket name from environment variables
         bucket_name = os.getenv("AWS_STORAGE_BUCKET_NAME")
@@ -41,16 +45,19 @@ class UploadDataView(APIView):
             return Response({"error": "S3 bucket not configured"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         s3 = boto3.client('s3')
-        s3.upload_fileobj(
-            file_obj,
-            bucket_name,  # ✅ Use actual bucket name from env
-            file_path,
-            ExtraArgs={
-                'Metadata': {
-                    'django-job-id': str(job_id)
+        try:
+            s3.upload_fileobj(
+                file_obj,
+                bucket_name,
+                file_path,
+                ExtraArgs={
+                    'Metadata': {
+                        'django-job-id': str(job_id)
+                    }
                 }
-            }
-        )
+            )
+        except Exception as e:
+            return Response({"error": f"S3 upload failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         file_url = f"https://{bucket_name}.s3.amazonaws.com/{file_path}"
         
@@ -156,7 +163,7 @@ class SalesDataView(APIView):
         # Get all sales CSV files
         response = s3.list_objects_v2(
             Bucket='bizpulse-data-lake',
-            Prefix='raw-uploads/'
+            Prefix='raw-data/'
         )
         
         all_data = []
@@ -278,7 +285,7 @@ class EnhancedSalesDataView(APIView):
         # Aggregate data based on timeframe
         all_sales = []
         
-        response = s3.list_objects_v2(Bucket='bizpulse-data-lake', Prefix='raw-uploads/')
+        response = s3.list_objects_v2(Bucket='bizpulse-data-lake', Prefix='raw-data/')
         
         for obj in response.get('Contents', []):
             if obj['Key'].endswith('.csv'):
@@ -332,7 +339,7 @@ class TopProductsView(APIView):
 
         response = s3.list_objects_v2(
             Bucket='bizpulse-data-lake',
-            Prefix='raw-uploads/'
+            Prefix='raw-data/'
         )
 
         all_data = []
