@@ -91,9 +91,9 @@ const AIPage = () => {
     <Layout activePage="ai">
       <div className="flex flex-col h-screen">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
-          <h1 className="text-2xl font-bold text-gray-800">AI Assistant</h1>
-          <p className="text-gray-600 text-sm">
+        <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">AI Assistant</h1>
+          <p className="text-gray-600 text-xs sm:text-sm">
             Ask questions about your business data, get insights, and receive AI-powered recommendations.
           </p>
         </div>
@@ -101,27 +101,27 @@ const AIPage = () => {
         {/* Chat Container */}
         <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
           {/* Messages */}
-          <div className="flex-1 p-6 overflow-y-auto">
+          <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
             {messages.length === 0 && (
-              <div className="text-center py-12">
+              <div className="text-center py-8 sm:py-12">
                 <div className="text-gray-400 mb-4">
-                  <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="10" />
                     <path d="M8 12h8M12 8v8" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-gray-600 mb-2">Welcome to BizPulse AI</h3>
-                <p className="text-gray-500">Start a conversation by asking a question about your business data.</p>
+                <h3 className="text-base sm:text-lg font-medium text-gray-600 mb-2">Welcome to BizPulse AI</h3>
+                <p className="text-gray-500 text-sm sm:text-base">Start a conversation by asking a question about your business data.</p>
               </div>
             )}
 
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`mb-6 ${message.type === 'user' ? 'flex justify-end' : 'flex justify-start'}`}
+                className={`mb-4 sm:mb-6 ${message.type === 'user' ? 'flex justify-end' : 'flex justify-start'}`}
               >
                 <div
-                  className={`max-w-lg px-4 py-3 rounded-lg ${
+                  className={`max-w-xs sm:max-w-lg px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-sm sm:text-base ${
                     message.type === 'user'
                       ? 'bg-blue-600 text-white'
                       : message.error
@@ -140,11 +140,11 @@ const AIPage = () => {
             ))}
 
             {loading && (
-              <div className="flex justify-start mb-6">
-                <div className="bg-gray-100 px-4 py-3 rounded-lg">
+              <div className="flex justify-start mb-4 sm:mb-6">
+                <div className="bg-gray-100 px-3 sm:px-4 py-2 sm:py-3 rounded-lg">
                   <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                    <span className="text-gray-600">Thinking...</span>
+                    <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-blue-500"></div>
+                    <span className="text-gray-600 text-sm sm:text-base">Thinking...</span>
                   </div>
                 </div>
               </div>
@@ -154,21 +154,21 @@ const AIPage = () => {
           </div>
 
           {/* Input */}
-          <div className="border-t border-gray-200 p-6 bg-white">
-            <div className="flex space-x-4">
+          <div className="border-t border-gray-200 p-4 sm:p-6 bg-white">
+            <div className="flex space-x-2 sm:space-x-4">
               <input
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Ask about your business data..."
-                className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="flex-1 border border-gray-300 rounded-lg px-3 sm:px-4 py-2 sm:py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm sm:text-base"
                 disabled={loading}
               />
               <button
                 onClick={sendMessage}
                 disabled={loading || !inputMessage.trim()}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                className="bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
               >
                 Send
               </button>
