@@ -33,13 +33,26 @@ class UploadDataView(APIView):
         if not file_obj:
             return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Validate file type
-        if not file_obj.name.endswith('.csv'):
-            return Response({"error": "Only CSV files are supported"}, status=status.HTTP_400_BAD_REQUEST)
+        # ✅ CREATE OR GET INGESTION JOB BEFORE UPLOADING TO S3
+        try:
+            job, created = IngestionJob.objects.get_or_create(
+                id=job_id,
+                defaults={
+                    'status': 'UPLOADED',
+                    'log_details': f'File {file_obj.name} uploaded successfully'
+                }
+            )
+            if not created:
+                # Update existing job
+                job.status = 'UPLOADED'
+                job.log_details = f'File {file_obj.name} re-uploaded'
+                job.save()
+                
+            print(f"DEBUG: IngestionJob {job_id} ensured to exist")
+        except Exception as e:
+            return Response({"error": f"Failed to create job record: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         file_path = f"raw-data/{file_obj.name}"
-
-        # Use the actual bucket name from environment variables
         bucket_name = os.getenv("AWS_STORAGE_BUCKET_NAME")
         
         if not bucket_name:
@@ -66,7 +79,8 @@ class UploadDataView(APIView):
             "message": "File uploaded successfully!",
             "file_path": file_path,
             "file_url": file_url,
-            "job_id": job_id
+            "job_id": job_id,
+            "job_status": job.status
         }, status=status.HTTP_201_CREATED)
         
 class MetricViewSet(viewsets.ReadOnlyModelViewSet):

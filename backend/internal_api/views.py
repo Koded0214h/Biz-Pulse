@@ -30,12 +30,15 @@ class BulkMetricCreateView(APIView):
         
         try:
             job = IngestionJob.objects.get(id=job_id)
-            print(f"DEBUG LOG: Found Ingestion Job: {job_id}. Status: {job.status}")
-            sys.stdout.flush()
+            print(f"DEBUG LOG: Found existing Ingestion Job: {job_id}. Status: {job.status}")
         except IngestionJob.DoesNotExist:
-            print(f"ERROR LOG: IngestionJob ID {job_id} not found.")
-            sys.stdout.flush()
-            return Response({"error": f"IngestionJob ID {job_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+            print(f"DEBUG LOG: IngestionJob {job_id} not found. Creating new one...")
+            job = IngestionJob.objects.create(
+                id=job_id,
+                status='UPLOADED',
+                log_details='Auto-created by BulkMetricCreateView'
+            )
+            print(f"DEBUG LOG: Created new Ingestion Job: {job_id}")
 
         # ------------------------------------------------------------------
         # HACKATHON BYPASS: Ensure DataSource ID=1 exists
