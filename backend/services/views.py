@@ -85,12 +85,41 @@ class UploadDataView(APIView):
 
         file_url = f"https://{bucket_name}.s3.amazonaws.com/{file_path}"
         
+        # ✅ TRIGGER AMAZON Q SYNC AFTER SUCCESSFUL UPLOAD
+        q_sync_triggered = False
+        q_execution_id = None
+        
+        try:
+            q_client = boto3.client('qbusiness', region_name='us-east-1')
+            
+            # Use environment variables for IDs (you'll need to set these)
+            app_id = os.getenv('AMAZON_Q_APP_ID', 'YOUR_APP_ID')
+            index_id = os.getenv('AMAZON_Q_INDEX_ID', 'YOUR_INDEX_ID')
+            data_source_id = os.getenv('AMAZON_Q_DATA_SOURCE_ID', 'YOUR_DATA_SOURCE_ID')
+            
+            sync_response = q_client.start_data_source_sync_job(
+                applicationId=app_id,
+                indexId=index_id,
+                dataSourceId=data_source_id
+            )
+            
+            q_sync_triggered = True
+            q_execution_id = sync_response.get('executionId')
+            
+            print(f"DEBUG: Amazon Q sync triggered. Execution ID: {q_execution_id}")
+            
+        except Exception as e:
+            print(f"WARNING: Amazon Q sync failed: {str(e)}")
+            # Don't fail the upload if sync fails - just log it
+        
         return Response({
             "message": "File uploaded successfully!",
             "file_path": file_path,
             "file_url": file_url,
             "job_id": job_id,
-            "job_status": job.status
+            "job_status": job.status,
+            "q_sync_triggered": q_sync_triggered,
+            "q_execution_id": q_execution_id
         }, status=status.HTTP_201_CREATED)
         
 class MetricViewSet(viewsets.ReadOnlyModelViewSet):
