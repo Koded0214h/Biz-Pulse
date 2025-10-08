@@ -22,66 +22,87 @@ from .serializers import (
     ForecastPredictionSerializer
 )
 from .amazon_q_service import AmazonQService
+from services.models import IngestionJob
 
 # Create your views here.
 
 class UploadDataView(APIView):
     def post(self, request, *args, **kwargs):
-        file_obj = request.FILES.get("file")
-        job_id = request.data.get("job_id", "1")
-        
-        if not file_obj:
-            return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # ✅ CREATE OR GET INGESTION JOB BEFORE UPLOADING TO S3
         try:
-            job, created = IngestionJob.objects.get_or_create(
-                id=job_id,
-                defaults={
-                    'status': 'UPLOADED',
-                    'log_details': f'File {file_obj.name} uploaded successfully'
-                }
-            )
-            if not created:
-                # Update existing job
-                job.status = 'UPLOADED'
-                job.log_details = f'File {file_obj.name} re-uploaded'
-                job.save()
-                
-            print(f"DEBUG: IngestionJob {job_id} ensured to exist")
-        except Exception as e:
-            return Response({"error": f"Failed to create job record: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        file_path = f"raw-data/{file_obj.name}"
-        bucket_name = os.getenv("AWS_STORAGE_BUCKET_NAME")
-        
-        if not bucket_name:
-            return Response({"error": "S3 bucket not configured"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        s3 = boto3.client('s3')
-        try:
-            s3.upload_fileobj(
-                file_obj,
-                bucket_name,
-                file_path,
-                ExtraArgs={
-                    'Metadata': {
-                        'django-job-id': str(job_id)
+            file_obj = request.FILES.get("file")
+            job_id = request.data.get("job_id", "1")
+            
+            print(f"DEBUG: Starting upload - File: {file_obj.name if file_obj else 'None'}, Job ID: {job_id}")
+            
+            if not file_obj:
+                return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # ✅ CREATE OR GET INGESTION JOB BEFORE UPLOADING TO S3
+            try:
+                print(f"DEBUG: Attempting to get_or_create IngestionJob with id={job_id}")
+                job, created = IngestionJob.objects.get_or_create(
+                    id=job_id,
+                    defaults={
+                        'status': 'UPLOADED',
+                        'log_details': f'File {file_obj.name} uploaded successfully'
                     }
-                }
-            )
-        except Exception as e:
-            return Response({"error": f"S3 upload failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                )
+                if not created:
+                    # Update existing job
+                    job.status = 'UPLOADED'
+                    job.log_details = f'File {file_obj.name} re-uploaded'
+                    job.save()
+                    
+                print(f"DEBUG: IngestionJob {job_id} ensured to exist. Created: {created}")
+            except Exception as e:
+                print(f"ERROR: Failed to create IngestionJob: {str(e)}")
+                import traceback
+                print(f"TRACEBACK: {traceback.format_exc()}")
+                return Response({"error": f"Failed to create job record: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            file_path = f"raw-data/{file_obj.name}"
+            bucket_name = os.getenv("AWS_STORAGE_BUCKET_NAME")
+            
+            print(f"DEBUG: Bucket name from env: {bucket_name}")
+            
+            if not bucket_name:
+                return Response({"error": "S3 bucket not configured"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        file_url = f"https://{bucket_name}.s3.amazonaws.com/{file_path}"
-        
-        return Response({
-            "message": "File uploaded successfully!",
-            "file_path": file_path,
-            "file_url": file_url,
-            "job_id": job_id,
-            "job_status": job.status
-        }, status=status.HTTP_201_CREATED)
+            s3 = boto3.client('s3')
+            try:
+                print(f"DEBUG: Uploading to S3 - Bucket: {bucket_name}, Key: {file_path}")
+                s3.upload_fileobj(
+                    file_obj,
+                    bucket_name,
+                    file_path,
+                    ExtraArgs={
+                        'Metadata': {
+                            'django-job-id': str(job_id)
+                        }
+                    }
+                )
+                print("DEBUG: S3 upload successful")
+            except Exception as e:
+                print(f"ERROR: S3 upload failed: {str(e)}")
+                return Response({"error": f"S3 upload failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            file_url = f"https://{bucket_name}.s3.amazonaws.com/{file_path}"
+            
+            print("DEBUG: Upload completed successfully")
+            
+            return Response({
+                "message": "File uploaded successfully!",
+                "file_path": file_path,
+                "file_url": file_url,
+                "job_id": job_id,
+                "job_status": job.status
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            print(f"UNEXPECTED ERROR in UploadDataView: {str(e)}")
+            import traceback
+            print(f"FULL TRACEBACK: {traceback.format_exc()}")
+            return Response({"error": f"Internal server error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class MetricViewSet(viewsets.ReadOnlyModelViewSet):
     """
