@@ -2,7 +2,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 const Chatbot = ({ isOpen, onClose, initialMessage }) => {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => {
+    // Load saved messages from localStorage if available
+    const saved = localStorage.getItem('chatbotMessages');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
@@ -13,6 +17,11 @@ const Chatbot = ({ isOpen, onClose, initialMessage }) => {
 
   useEffect(() => {
     scrollToBottom();
+  }, [messages]);
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('chatbotMessages', JSON.stringify(messages));
   }, [messages]);
 
   // When initialMessage changes, send it automatically

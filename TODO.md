@@ -1,12 +1,10 @@
-# Profile Page Improvement Tasks
+# TODO: Create AI Page and Integrate Chatbot
 
-- [ ] Add card container with shadow and rounded corners around the form
-- [ ] Add profile header section with avatar placeholder and user name
-- [ ] Add icons to field labels (business, phone, country, industry)
-- [ ] Improve input field styling with focus states and better borders
-- [ ] Enhance button styles and layout (full width, better colors)
-- [ ] Improve responsiveness for mobile and tablet views
-- [ ] Add visual enhancements like gradients or better color scheme
-- [ ] Test the updated profile page appearance
-
-
+## Tasks
+- [x] Create AIPage.jsx with Chatbot component
+- [x] Add /ai route in App.jsx
+- [x] Add AI nav item in Layout.jsx sidebar
+- [x] Enhance Chatbot to save conversation history in localStorage
+- [ ] Test AI page loads
+- [ ] Test chatbot functionality with history
+- [ ] Verify sidebar navigation works

@@ -57,16 +57,22 @@ const Layout = ({ children, activePage }) => {
     active={activePage === 'connections'} 
     onClick={() => window.location.href = '/connections'}
   />
-  <SidebarItem 
-    icon="alert" 
-    label="Alerts" 
-    active={activePage === 'alerts'} 
+  <SidebarItem
+    icon="alert"
+    label="Alerts"
+    active={activePage === 'alerts'}
     onClick={() => window.location.href = '/alerts'}
   />
-  <SidebarItem 
-    icon="settings" 
-    label="Profile" 
-    active={activePage === 'profile'} 
+  <SidebarItem
+    icon="ai"
+    label="AI"
+    active={activePage === 'ai'}
+    onClick={() => window.location.href = '/ai'}
+  />
+  <SidebarItem
+    icon="settings"
+    label="Profile"
+    active={activePage === 'profile'}
     onClick={() => window.location.href = '/profile'}
   />
 </nav>
@@ -137,6 +143,13 @@ case 'sales':
       <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
     </svg>
   );
+      case 'ai':
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M8 12h8M12 8v8" />
+          </svg>
+        );
       default:
         return null;
     }

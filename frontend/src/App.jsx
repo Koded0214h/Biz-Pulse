@@ -10,6 +10,7 @@ import DataConnections from './pages/DataConnections';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import LandingPage from './pages/LandingPage';
+import AIPage from './pages/AIPage';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/connections" element={<DataConnections />} />
+          <Route path="/ai" element={<AIPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<LandingPage />} />

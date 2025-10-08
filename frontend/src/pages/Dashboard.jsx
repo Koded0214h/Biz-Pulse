@@ -79,13 +79,13 @@ const Dashboard = () => {
 
   const recommendations = [
     {
-      title: "Low engagement on 'Product X'",
+      title: "Low engagement on Product Alpha",
       description: "Launch a targeted email campaign to re-engage customers.",
       action: "Create Campaign",
       type: "engagement"
     },
     {
-      title: "Inventory for 'Item Y' is low",
+      title: "Inventory for Project Bravo is low",
       description: "Reorder stock now to avoid potential shortages and lost sales.",
       action: "Go to Inventory",
       type: "inventory"
@@ -182,7 +182,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-          ))}
+          ))} 
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
