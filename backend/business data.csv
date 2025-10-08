@@ -11,3 +11,5 @@ timestamp,metric_name,value,product
 2024-10,Daily_Sales,19200.20,Product Alpha
 2024-11,Daily_Sales,20500.60,Product Delta
 2024-12,Daily_Sales,22800.90,Product Echo
+2025-01,Daily_Sales,17000.00,Product Felga
+

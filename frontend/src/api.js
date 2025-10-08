@@ -117,6 +117,11 @@ export const authAPI = {
     return response.data;
   },
 
+  getSalesSummary: async () => {
+    const response = await api.get('/services/charts/sales-summary/');
+    return response.data;
+  },
+
   logout: async (refreshToken) => {
     const response = await api.post('/logout/', { refresh_token: refreshToken });
     return response.data;

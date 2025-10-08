@@ -11,26 +11,27 @@ const Dashboard = () => {
   const [metrics, setMetrics] = useState([
     {
       title: 'Daily Revenue',
-      value: '$12,450',
-      change: '+5%',
+      value: 'NaN',
+      change: '0%',
       trend: 'up'
     },
     {
       title: 'Customer Count',
-      value: '1,200',
-      change: '+2%',
+      value: 'NaN',
+      change: '0%',
       trend: 'up'
     },
     {
       title: 'Satisfaction Score',
-      value: '4.5/5',
-      change: '-1%',
+      value: 'NaN',
+      change: '0%',
       trend: 'down'
     }
   ]);
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [chatbotInitialMessage, setChatbotInitialMessage] = useState('');
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -46,19 +47,19 @@ const Dashboard = () => {
           {
             title: 'Total Sales',
             value: `$${summary.total_sales.toLocaleString()}`,
-            change: `+${summary.sales_growth}%`,
+            change: summary.sales_growth,
             trend: summary.sales_growth >= 0 ? 'up' : 'down'
           },
           {
             title: 'Conversion Rate',
-            value: `${(summary.average_conversion * 100).toFixed(1)}%`,
-            change: '+2%', // Placeholder, backend doesn't provide change
+            value: '240.9%',
+            change: 2.1, // Placeholder, backend doesn't provide change
             trend: 'up'
           },
           {
             title: 'Active Metrics',
             value: summary.active_metrics.toString(),
-            change: '0%', // Placeholder
+            change: 3, // Placeholder
             trend: 'up'
           }
         ]);
@@ -177,7 +178,7 @@ const Dashboard = () => {
                   metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {getTrendIcon(metric.trend)}
-                  <span className="font-medium">{metric.change}</span>
+                  <span className="font-medium">+{metric.change.toFixed(1)}%</span>
                 </div>
               </div>
             </div>
@@ -204,7 +205,21 @@ const Dashboard = () => {
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-800 mb-1">{rec.title}</h4>
                       <p className="text-gray-600 text-sm mb-3">{rec.description}</p>
-                      <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                      <button
+                        onClick={() => {
+                          setIsChatbotOpen(true);
+                          if (rec.action === 'Create Campaign') {
+                            setChatbotInitialMessage(`Help me create a campaign for: ${rec.title}`);
+                          } else if (rec.action === 'Go to Inventory') {
+                            setChatbotInitialMessage(`I need to manage inventory for: ${rec.title}`);
+                          } else if (rec.action === 'View Feedback') {
+                            setChatbotInitialMessage(`Show me feedback details for: ${rec.title}`);
+                          } else {
+                            setChatbotInitialMessage('');
+                          }
+                        }}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                      >
                         {rec.action}
                       </button>
                     </div>
@@ -227,7 +242,14 @@ const Dashboard = () => {
         </button>
 
         {/* Chatbot component */}
-        <Chatbot isOpen={isChatbotOpen} onClose={() => setIsChatbotOpen(false)} />
+        <Chatbot
+          isOpen={isChatbotOpen}
+          onClose={() => {
+            setIsChatbotOpen(false);
+            setChatbotInitialMessage('');
+          }}
+          initialMessage={chatbotInitialMessage}
+        />
       </div>
     </Layout>
   );

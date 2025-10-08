@@ -1,7 +1,7 @@
 // components/Chatbot.jsx
 import React, { useState, useRef, useEffect } from 'react';
 
-const Chatbot = ({ isOpen, onClose }) => {
+const Chatbot = ({ isOpen, onClose, initialMessage }) => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,6 +14,49 @@ const Chatbot = ({ isOpen, onClose }) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // When initialMessage changes, send it automatically
+  useEffect(() => {
+    if (initialMessage && initialMessage.trim()) {
+      sendInitialMessage(initialMessage);
+    }
+  }, [initialMessage]);
+
+  const sendInitialMessage = async (message) => {
+    setInputMessage('');
+    setMessages(prev => [...prev, { type: 'user', content: message }]);
+    setLoading(true);
+
+    try {
+      console.log('🔍 Sending initial message to Amazon Q:', message);
+      
+      const response = await askQuestionDirect(message);
+      console.log('✅ Amazon Q response:', response);
+      
+      if (response.answer) {
+        setMessages(prev => [...prev, { 
+          type: 'assistant', 
+          content: response.answer,
+          sources: response.sources 
+        }]);
+      } else {
+        setMessages(prev => [...prev, { 
+          type: 'assistant', 
+          content: 'Sorry, I could not process your question.',
+          error: true
+        }]);
+      }
+    } catch (error) {
+      console.error('❌ Amazon Q error:', error);
+      setMessages(prev => [...prev, { 
+        type: 'assistant', 
+        content: `Error: ${error.message}`,
+        error: true
+      }]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Direct API call without authentication headers
   const askQuestionDirect = async (question) => {

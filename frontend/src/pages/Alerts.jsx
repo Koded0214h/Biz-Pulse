@@ -9,6 +9,7 @@ const Alerts = () => {
       metrics: true,
       forecast: false,
       lookout: false,
+      alert: true,
     },
     priority: 'all',
     status: 'all',
@@ -25,20 +26,78 @@ const Alerts = () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await authAPI.getInsights();
-        // Sort insights by created_at descending
-        const sortedInsights = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        // Map backend insight data to frontend alert shape
-        const mappedAlerts = sortedInsights.map(insight => ({
-          id: insight.id,
-          title: insight.title,
-          time: formatTimeAgo(new Date(insight.created_at)),
-          description: insight.summary,
-          priority: mapSourceToPriority(insight.source),
-          type: mapSourceToType(insight.source),
-          unread: true, // Mark all as unread for now
-        }));
-        setAlerts(mappedAlerts);
+        // Fetch insights, alerts, and forecasts in parallel
+        const [insightsData, alertsData, forecastsData] = await Promise.all([
+          authAPI.getInsights(),
+          authAPI.getAlerts(),
+          authAPI.getForecasts()
+        ]);
+
+        // Combine all data into unified alerts
+        const allAlerts = [];
+
+        // Process insights
+        insightsData.forEach(insight => {
+          const timestamp = new Date(insight.created_at);
+          allAlerts.push({
+            id: `insight-${insight.id}`,
+            title: insight.title,
+            time: formatTimeAgo(timestamp),
+            timestamp: timestamp,
+            description: insight.summary,
+            priority: mapSourceToPriority(insight.source),
+            type: mapSourceToType(insight.source),
+            unread: true,
+            source: insight.source,
+            dataSource: insight.data_source_name,
+            category: 'insight'
+          });
+        });
+
+        // Process alerts
+        alertsData.forEach(alert => {
+          const timestamp = new Date(alert.timestamp || alert.acknowledged_at || new Date());
+          allAlerts.push({
+            id: `alert-${alert.id}`,
+            title: alert.insight.title,
+            time: formatTimeAgo(timestamp),
+            timestamp: timestamp,
+            description: alert.insight.summary,
+            priority: mapSeverityToPriority(alert.severity),
+            type: 'alert',
+            unread: alert.status === 'PENDING',
+            source: 'ALERT',
+            dataSource: alert.insight.data_source_name,
+            category: 'alert',
+            status: alert.status,
+            severity: alert.severity
+          });
+        });
+
+        // Process forecasts
+        forecastsData.forEach(forecast => {
+          const timestamp = new Date(forecast.prediction_time);
+          const predictionCount = forecast.prediction_data?.length || 0;
+          allAlerts.push({
+            id: `forecast-${forecast.id}`,
+            title: `Forecast: ${forecast.metric_name}`,
+            time: formatTimeAgo(timestamp),
+            timestamp: timestamp,
+            description: `Generated forecast with ${predictionCount} predictions for ${forecast.metric_name}`,
+            priority: 'low',
+            type: 'forecast',
+            unread: true,
+            source: 'FORECAST',
+            dataSource: 'Forecast Service',
+            category: 'forecast',
+            predictions: forecast.prediction_data
+          });
+        });
+
+        // Sort all alerts by timestamp descending
+        const sortedAlerts = allAlerts.sort((a, b) => b.timestamp - a.timestamp);
+
+        setAlerts(sortedAlerts);
       } catch (err) {
         setError('Failed to load alerts. Please try again later.');
         console.error('Error fetching alerts:', err);
@@ -65,6 +124,16 @@ const Alerts = () => {
       case 'BEDROCK': return 'metrics';
       case 'FORECAST': return 'forecast';
       default: return 'metrics';
+    }
+  };
+
+  const mapSeverityToPriority = (severity) => {
+    switch (severity) {
+      case 'CRITICAL': return 'critical';
+      case 'HIGH': return 'high';
+      case 'MEDIUM': return 'medium';
+      case 'LOW': return 'low';
+      default: return 'low';
     }
   };
 
@@ -189,7 +258,11 @@ const Alerts = () => {
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <span className="text-gray-700 capitalize">
-                      {key.replace(/([A-Z])/g, ' $1').trim()}
+                      {key === 'metrics' ? 'Metrics' :
+                       key === 'forecast' ? 'Forecast' :
+                       key === 'lookout' ? 'Lookout' :
+                       key === 'alert' ? 'Alerts' :
+                       key.replace(/([A-Z])/g, ' $1').trim()}
                     </span>
                   </label>
                 ))}

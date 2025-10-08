@@ -35,19 +35,22 @@ const SalesDeepDive = () => {
 
   const [salesData, setSalesData] = useState(null);
   const [topProductsData, setTopProductsData] = useState(null);
+  const [salesSummary, setSalesSummary] = useState(null);
   const [salesTableData, setSalesTableData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSalesData = async () => {
       try {
-        const [salesResponse, topProductsResponse] = await Promise.all([
+        const [salesResponse, topProductsResponse, summaryResponse] = await Promise.all([
           authAPI.getSalesData(),
-          authAPI.getTopProducts()
+          authAPI.getTopProducts(),
+          authAPI.getSalesSummary()
         ]);
 
         setSalesData(salesResponse);
         setTopProductsData(topProductsResponse);
+        setSalesSummary(summaryResponse);
 
         // For demo, set salesTableData with static data or fetch from backend if available
         setSalesTableData([
@@ -295,10 +298,14 @@ const SalesDeepDive = () => {
                 </svg>
                 <span className="text-sm font-medium text-gray-600">Total Revenue</span>
               </div>
-              <div className="text-2xl font-bold text-gray-900 mb-1">$4,820,193</div>
+              <div className="text-2xl font-bold text-gray-900 mb-1">
+                ${salesSummary ? salesSummary.total_revenue.toLocaleString() : '4,820,193'}
+              </div>
               <div className="flex items-center space-x-1 text-green-600">
-                {getGrowthIcon(12.5)}
-                <span className="text-sm font-medium">+12.5% vs last period</span>
+                {getGrowthIcon(salesSummary ? salesSummary.revenue_growth : 12.5)}
+                <span className="text-sm font-medium">
+                  +{salesSummary ? salesSummary.revenue_growth : 12.5}% vs last period
+                </span>
               </div>
             </div>
 
@@ -309,7 +316,9 @@ const SalesDeepDive = () => {
                 </svg>
                 <span className="text-sm font-medium text-gray-600">Average Order Value</span>
               </div>
-              <div className="text-2xl font-bold text-gray-900 mb-1">$245.50</div>
+              <div className="text-2xl font-bold text-gray-900 mb-1">
+                ${salesSummary ? salesSummary.avg_order_value.toFixed(2) : '245.50'}
+              </div>
               <div className="flex items-center space-x-1 text-green-600">
                 {getGrowthIcon(2.1)}
                 <span className="text-sm font-medium">+2.1% vs last period</span>
@@ -324,7 +333,9 @@ const SalesDeepDive = () => {
                 </svg>
                 <span className="text-sm font-medium text-gray-600">Conversion Rate</span>
               </div>
-              <div className="text-2xl font-bold text-gray-900 mb-1">3.4%</div>
+              <div className="text-2xl font-bold text-gray-900 mb-1">
+                {salesSummary ? (salesSummary.conversion_rate * 100).toFixed(1) : '3.4'}%
+              </div>
               <div className="flex items-center space-x-1 text-green-600">
                 {getGrowthIcon(0.8)}
                 <span className="text-sm font-medium">+0.8% vs last period</span>

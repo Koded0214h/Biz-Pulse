@@ -47,6 +47,7 @@ const DataConnections = () => {
       name: 'Stripe',
       category: 'ecommerce',
       description: 'Sync your payment and subscription data.',
+      link:'https://stripe.com/',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -60,6 +61,7 @@ const DataConnections = () => {
       name: 'Mailchimp',
       category: 'marketing',
       description: 'Analyze your email marketing campaign performance.',
+      link:'https://mailchimp.com/',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -71,6 +73,7 @@ const DataConnections = () => {
       name: 'Salesforce',
       category: 'marketing',
       description: 'Track your sales pipeline and customer interactions.',
+      link:'https://www.salesforce.com/',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
@@ -86,6 +89,7 @@ const DataConnections = () => {
       name: 'HubSpot',
       category: 'marketing',
       description: 'Get insights from your marketing and sales data.',
+      link:'https://www.hubspot.com/',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="10"/>
@@ -282,9 +286,11 @@ const DataConnections = () => {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-gray-500">{integration.category}</span>
+                        <a href={integration.link}>
                         <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                           Connect
                         </button>
+                        </a>
                       </div>
                     </div>
                   ))}
