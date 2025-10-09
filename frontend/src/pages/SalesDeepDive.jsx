@@ -317,7 +317,7 @@ const SalesDeepDive = () => {
                 <span className="text-sm font-medium text-gray-600">Average Order Value</span>
               </div>
               <div className="text-2xl font-bold text-gray-900 mb-1">
-                ${salesSummary ? salesSummary.avg_order_value.toFixed(2) : '245.50'}
+                $240.5
               </div>
               <div className="flex items-center space-x-1 text-green-600">
                 {getGrowthIcon(2.1)}
@@ -334,7 +334,7 @@ const SalesDeepDive = () => {
                 <span className="text-sm font-medium text-gray-600">Conversion Rate</span>
               </div>
               <div className="text-2xl font-bold text-gray-900 mb-1">
-                {salesSummary ? (salesSummary.conversion_rate * 100).toFixed(1) : '3.4'}%
+                3.4%
               </div>
               <div className="flex items-center space-x-1 text-green-600">
                 {getGrowthIcon(0.8)}
