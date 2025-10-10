@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 from django.core.files.storage import default_storage
 import boto3
-import os
+import os, json
 import io
 from django.db.models import Sum, Avg, Count
 from django.utils import timezone
