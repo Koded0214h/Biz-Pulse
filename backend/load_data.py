@@ -10,15 +10,27 @@ django.setup()
 from core.models import DataSource, IngestionJob
 from services.models import Metric
 from django.db import transaction
+from django.contrib.auth import get_user_model
 
 def load_business_data():
     # Read CSV
     df = pd.read_csv('business data.csv')
 
+    # Get or create a default user for the data source
+    User = get_user_model()
+    user, created = User.objects.get_or_create(
+        username='admin',
+        defaults={'email': 'admin@example.com'}
+    )
+
     # Create or get DataSource
     data_source, created = DataSource.objects.get_or_create(
         id=1,
-        defaults={'name': 'Business Data Source'}
+        defaults={
+            'name': 'Business Data Source',
+            'owner': user,
+            'source_type': 'CUSTOM'  # Add required source_type
+        }
     )
 
     # Create IngestionJob

@@ -560,90 +560,104 @@ class TopProductsView(APIView):
 
     def get_top_products(self):
         try:
-            # Get ALL sales metrics
+            # Try to get from database first
             sales_metrics = Metric.objects.filter(name='Daily_Sales')
-            
-            print(f"DEBUG: Found {sales_metrics.count()} sales metrics")  # Debug
 
-            if not sales_metrics.exists():
-                return self.get_fallback_data()
+            if sales_metrics.exists():
+                # Group by product from metadata
+                product_revenue = {}
 
-            # Group by product from metadata
-            product_revenue = {}
-            
-            for metric in sales_metrics:
-                # Debug: Print metadata structure
-                if metric.metadata:
-                    print(f"DEBUG: Metric metadata: {metric.metadata}")
-                
-                # Extract product from metadata - handle different metadata structures
-                product = "Unknown"
-                if metric.metadata:
-                    if isinstance(metric.metadata, dict):
-                        # Handle dictionary metadata
-                        if 'product' in metric.metadata:
-                            product = metric.metadata['product']
-                        elif 'Product' in metric.metadata:
-                            product = metric.metadata['Product']
-                    elif isinstance(metric.metadata, str):
-                        # Handle string metadata (try to parse as JSON)
-                        try:
-                            metadata_dict = json.loads(metric.metadata)
-                            if 'product' in metadata_dict:
-                                product = metadata_dict['product']
-                        except:
-                            pass
-                
-                # Clean up product name
-                product = product.strip() if product else "Unknown"
-                
-                if product not in product_revenue:
-                    product_revenue[product] = 0
-                
-                product_revenue[product] += float(metric.value)
+                for metric in sales_metrics:
+                    product = "Unknown"
+                    if metric.metadata and isinstance(metric.metadata, dict) and 'product' in metric.metadata:
+                        product = metric.metadata['product'].strip()
 
-            print(f"DEBUG: Products found: {list(product_revenue.keys())}")  # Debug
+                    if product not in product_revenue:
+                        product_revenue[product] = 0
 
-            # Remove "Unknown" if we have real products
-            if len(product_revenue) > 1 and "Unknown" in product_revenue:
-                del product_revenue["Unknown"]
+                    product_revenue[product] += float(metric.value)
 
-            # Sort by revenue descending
-            sorted_products = sorted(product_revenue.items(), key=lambda x: x[1], reverse=True)
-            
-            labels = [p[0] for p in sorted_products]
-            data_values = [p[1] for p in sorted_products]
+                # Remove "Unknown" if we have real products
+                if len(product_revenue) > 1 and "Unknown" in product_revenue:
+                    del product_revenue["Unknown"]
 
-            # Calculate simple growth
-            product_growth = {}
-            for product, revenue in sorted_products:
-                # Simple growth based on product name hash for consistency
-                growth = (hash(product) % 40) - 20  # Growth between -20% and +20%
-                product_growth[product] = growth
+                if product_revenue:
+                    sorted_products = sorted(product_revenue.items(), key=lambda x: x[1], reverse=True)
+                    labels = [p[0] for p in sorted_products]
+                    data_values = [p[1] for p in sorted_products]
 
-            colors = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444', '#06B6D4', '#84CC16', '#F97316']
-            
-            return {
-                "labels": labels,
-                "datasets": [{
-                    "label": "Revenue",
-                    "data": data_values,
-                    "backgroundColor": [colors[i % len(colors)] for i in range(len(labels))],
-                    "borderRadius": 6,
-                }],
-                "products": [
-                    {
-                        "name": product,
-                        "revenue": int(revenue),
-                        "growth": round(product_growth.get(product, 0), 1)
+                    product_growth = {}
+                    for product, revenue in sorted_products:
+                        growth = (hash(product) % 40) - 20
+                        product_growth[product] = growth
+
+                    colors = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444', '#06B6D4', '#84CC16', '#F97316']
+
+                    return {
+                        "labels": labels,
+                        "datasets": [{
+                            "label": "Revenue",
+                            "data": data_values,
+                            "backgroundColor": [colors[i % len(colors)] for i in range(len(labels))],
+                            "borderRadius": 6,
+                        }],
+                        "products": [
+                            {
+                                "name": product,
+                                "revenue": int(revenue),
+                                "growth": round(product_growth.get(product, 0), 1)
+                            }
+                            for product, revenue in sorted_products
+                        ]
                     }
-                    for product, revenue in sorted_products
-                ]
-            }
+
+            # Fallback: Read directly from CSV
+            csv_path = os.path.join(os.path.dirname(__file__), 'business data.csv')
+            if os.path.exists(csv_path):
+                df = pd.read_csv(csv_path)
+                sales_df = df[df['metric_name'] == 'Daily_Sales']
+
+                product_revenue = {}
+                for _, row in sales_df.iterrows():
+                    product = row.get('product', 'Unknown').strip()
+                    if product not in product_revenue:
+                        product_revenue[product] = 0
+                    product_revenue[product] += float(row['value'])
+
+                if product_revenue:
+                    sorted_products = sorted(product_revenue.items(), key=lambda x: x[1], reverse=True)
+                    labels = [p[0] for p in sorted_products]
+                    data_values = [p[1] for p in sorted_products]
+
+                    product_growth = {}
+                    for product, revenue in sorted_products:
+                        growth = (hash(product) % 40) - 20
+                        product_growth[product] = growth
+
+                    colors = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444', '#06B6D4', '#84CC16', '#F97316']
+
+                    return {
+                        "labels": labels,
+                        "datasets": [{
+                            "label": "Revenue",
+                            "data": data_values,
+                            "backgroundColor": [colors[i % len(colors)] for i in range(len(labels))],
+                            "borderRadius": 6,
+                        }],
+                        "products": [
+                            {
+                                "name": product,
+                                "revenue": int(revenue),
+                                "growth": round(product_growth.get(product, 0), 1)
+                            }
+                            for product, revenue in sorted_products
+                        ]
+                    }
+
+            # Final fallback
+            return self.get_fallback_data()
         except Exception as e:
             print(f"ERROR in get_top_products: {str(e)}")
-            import traceback
-            print(f"Traceback: {traceback.format_exc()}")
             return self.get_fallback_data()
 
     def get_fallback_data(self):
