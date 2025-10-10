@@ -1,4 +1,4 @@
-// pages/SalesDeepDive.jsx - UPDATED TO USE YOUR BACKEND
+// pages/SalesDeepDive.jsx - WITH PAGINATION
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import {
@@ -40,6 +40,10 @@ const SalesDeepDive = () => {
   const [salesTableData, setSalesTableData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [availableProducts, setAvailableProducts] = useState([]);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
 
   useEffect(() => {
     const fetchSalesData = async () => {
@@ -85,32 +89,37 @@ const SalesDeepDive = () => {
 
       // Create sample table data based on actual products and sales
       topProductsData.products.forEach((product, index) => {
-        salesData.labels.forEach((date, dateIndex) => {
-          if (dateIndex % 3 === 0) { // Sample some dates to avoid too many rows
-            tableData.push({
-              id: `#${10000 + tableData.length}`,
-              date: date,
-              customer: customers[tableData.length % customers.length],
-              product: product.name,
-              channel: channels[tableData.length % channels.length],
-              amount: Math.round(product.revenue * (0.1 + Math.random() * 0.3)) // Random amount based on product revenue
-            });
-          }
-        });
+        // Create 2-3 sample transactions per product
+        const transactionsPerProduct = 2 + (index % 2); // 2 or 3 transactions
+        for (let i = 0; i < transactionsPerProduct; i++) {
+          tableData.push({
+            id: `#${10000 + tableData.length}`,
+            date: salesData.labels[Math.floor(Math.random() * salesData.labels.length)],
+            customer: customers[tableData.length % customers.length],
+            product: product.name,
+            channel: channels[tableData.length % channels.length],
+            amount: Math.round(product.revenue * (0.05 + Math.random() * 0.15)) // Random amount based on product revenue
+          });
+        }
       });
 
-      setSalesTableData(tableData.slice(0, 20)); // Limit to 20 rows
+      setSalesTableData(tableData);
     };
 
     fetchSalesData();
   }, []);
 
+  // Pagination calculations
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = salesTableData.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(salesTableData.length / itemsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   // Filter sales data based on product selection
   const filteredSalesData = React.useMemo(() => {
     if (!salesData || selectedProductLine === 'all') return salesData;
-    
-    // Since your current sales data doesn't separate by product in the line chart,
-    // we'll show all data but highlight the selected product
     return salesData;
   }, [salesData, selectedProductLine]);
 
@@ -126,7 +135,7 @@ const SalesDeepDive = () => {
       datasets: [{
         ...topProductsData.datasets[0],
         data: [topProductsData.datasets[0].data[productIndex]],
-        backgroundColor: [topProductsData.datasets[0].backgroundColor || '#3B82F6']
+        backgroundColor: [topProductsData.datasets[0].backgroundColor[productIndex]]
       }],
       products: [topProductsData.products[productIndex]]
     };
@@ -444,7 +453,8 @@ const SalesDeepDive = () => {
                       index === 0 ? 'bg-blue-500' :
                       index === 1 ? 'bg-green-500' :
                       index === 2 ? 'bg-purple-500' :
-                      index === 3 ? 'bg-yellow-500' : 'bg-red-500'
+                      index === 3 ? 'bg-yellow-500' : 
+                      index === 4 ? 'bg-red-500' : 'bg-indigo-500'
                     }`}></div>
                     <span className="font-medium text-gray-700">{product.name}</span>
                   </div>
@@ -515,12 +525,17 @@ const SalesDeepDive = () => {
           </div>
         </div>
 
-        {/* Detailed Sales Data Table */}
+        {/* Detailed Sales Data Table with Pagination */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
           <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-800">Detailed Sales Data</h3>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">Detailed Sales Data</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Showing {Math.min(itemsPerPage, currentItems.length)} of {salesTableData.length} transactions
+              </p>
+            </div>
             <div className="text-sm text-gray-500">
-              {salesTableData.length} transactions
+              Page {currentPage} of {totalPages}
             </div>
           </div>
           <div className="overflow-x-auto">
@@ -536,7 +551,7 @@ const SalesDeepDive = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {salesTableData.map((row) => (
+                {currentItems.map((row) => (
                   <tr key={row.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{row.id}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.date}</td>
@@ -559,10 +574,53 @@ const SalesDeepDive = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, salesTableData.length)} of {salesTableData.length} results
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => paginate(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  
+                  {/* Page Numbers */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                    <button
+                      key={number}
+                      onClick={() => paginate(number)}
+                      className={`px-3 py-1 text-sm border rounded-md ${
+                        currentPage === number
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {number}
+                    </button>
+                  ))}
+                  
+                  <button
+                    onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Layout>
   );
 };
 
-export default SalesDeepDive;
+export default SalesDeepDive; 
