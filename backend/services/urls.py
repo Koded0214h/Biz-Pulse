@@ -27,4 +27,8 @@ urlpatterns = [
     path('charts/customers/', views.CustomerMetricsView.as_view(), name='customer-chart'),
     path('charts/enhanced-sales/', views.EnhancedSalesDataView.as_view(), name='enhanced-sales-chart'),
     path('charts/top-products/', views.TopProductsView.as_view(), name='top-products-chart'),
+    
+    path('business/recommendations/', views.BusinessRecommendationsView.as_view(), name='business recommendation'),
+    path('business/health/', views.BusinessHealthView.as_view(), name='business health'),
+    path('business/what-if/', views.WhatIfAnalysisView.as_view(), name='business what id'),
 ]

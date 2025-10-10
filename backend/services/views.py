@@ -21,7 +21,7 @@ from .serializers import (
     AlertViewSetSerializer,
     ForecastPredictionSerializer
 )
-from .amazon_q_service import AmazonQService
+from .amazon_q_service import BizPulseAmazonQService
 from services.models import IngestionJob
 from core.models import DataSource
 
@@ -175,7 +175,7 @@ class NaturalLanguageQueryView(APIView):
             return Response({"error": "Question is required"}, status=400)
         
         try:
-            q_service = AmazonQService()
+            q_service = BizPulseAmazonQService()
             # ⚠️ No user_id parameter needed for anonymous access
             result = q_service.ask_question(question=question)
             
@@ -187,6 +187,33 @@ class NaturalLanguageQueryView(APIView):
                 "details": str(e)
             }, status=500)
             
+            
+# views.py - Add these new endpoints
+class BusinessRecommendationsView(APIView):
+    def get(self, request):
+        """Get proactive business recommendations"""
+        q_service = BizPulseAmazonQService()
+        recommendations = q_service.get_business_recommendations()
+        return Response(recommendations)
+
+class BusinessHealthView(APIView):
+    def get(self, request):
+        """Get business health assessment"""
+        q_service = BizPulseAmazonQService()
+        health_check = q_service.analyze_business_health()
+        return Response(health_check)
+
+class WhatIfAnalysisView(APIView):
+    def post(self, request):
+        """Run what-if scenarios"""
+        scenario = request.data.get('scenario')
+        # Example: "What if I increase marketing budget by 20%?"
+        
+        q_service = BizPulseAmazonQService()
+        analysis = q_service.ask_business_question(
+            f"Analyze this business scenario: {scenario}. Provide projected outcomes and risks."
+        )
+        return Response(analysis)
             
 class SalesSummaryView(APIView):
     """Serve sales summary metrics for sales deep dive page"""
