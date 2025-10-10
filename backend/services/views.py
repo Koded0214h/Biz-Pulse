@@ -591,3 +591,66 @@ class TopProductsView(APIView):
                     {"name": "Product Echo", "revenue": 432000, "growth": 12.8},
                 ]
             }
+
+
+ # services/views.py - Add these views
+class AcknowledgeAlertView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, pk):
+        try:
+            alert = Alert.objects.get(id=pk)
+            alert.status = 'ACKNOWLEDGED'
+            alert.acknowledged_at = timezone.now()
+            alert.acknowledged_by = request.user
+            alert.save()
+            
+            return Response({"message": "Alert acknowledged", "status": alert.status})
+        except Alert.DoesNotExist:
+            return Response({"error": "Alert not found"}, status=404)
+
+class DismissAlertView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, pk):
+        try:
+            alert = Alert.objects.get(id=pk)
+            alert.status = 'DISMISSED'
+            alert.dismissed_at = timezone.now()
+            alert.dismissed_by = request.user
+            alert.save()
+            
+            return Response({"message": "Alert dismissed", "status": alert.status})
+        except Alert.DoesNotExist:
+            return Response({"error": "Alert not found"}, status=404)
+
+class BulkAlertActionView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        alert_ids = request.data.get('alert_ids', [])
+        action = request.data.get('action')  # 'acknowledge', 'dismiss', 'archive'
+        
+        if not alert_ids or not action:
+            return Response({"error": "alert_ids and action are required"}, status=400)
+        
+        try:
+            alerts = Alert.objects.filter(id__in=alert_ids)
+            updated_count = 0
+            
+            for alert in alerts:
+                if action == 'acknowledge':
+                    alert.status = 'ACKNOWLEDGED'
+                    alert.acknowledged_at = timezone.now()
+                    alert.acknowledged_by = request.user
+                elif action == 'dismiss':
+                    alert.status = 'DISMISSED'
+                    alert.dismissed_at = timezone.now()
+                    alert.dismissed_by = request.user
+                
+                alert.save()
+                updated_count += 1
+            
+            return Response({"message": f"{updated_count} alerts {action}ed"})
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)

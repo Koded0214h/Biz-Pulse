@@ -33,4 +33,14 @@ urlpatterns = [
     path('q/recommendations/', views.BusinessRecommendationsView.as_view(), name='business-recommendations'),
     path('q/health/', views.BusinessHealthView.as_view(), name='business-health'),
     path('q/what-if/', views.WhatIfAnalysisView.as_view(), name='what-if-analysis'),
+    
+    # Alerts & Insights endpoints
+    path('alerts/', views.AlertViewSet.as_view({'get': 'list'}), name='alerts-list'),
+    path('insights/', views.InsightViewSet.as_view({'get': 'list'}), name='insights-list'),
+    path('forecasts/', views.ForecastPredictionViewSet.as_view({'get': 'list'}), name='forecasts-list'),
+    
+    # Alert actions
+    path('alerts/<int:pk>/acknowledge/', views.AcknowledgeAlertView.as_view(), name='acknowledge-alert'),
+    path('alerts/<int:pk>/dismiss/', views.DismissAlertView.as_view(), name='dismiss-alert'),
+    path('alerts/bulk-action/', views.BulkAlertActionView.as_view(), name='bulk-alert-action'),
 ]
