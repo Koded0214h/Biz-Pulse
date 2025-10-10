@@ -560,26 +560,19 @@ class TopProductsView(APIView):
 
     def get_top_products(self):
         try:
-            # Try to get from database first
-            sales_metrics = Metric.objects.filter(name='Daily_Sales')
+            # Read directly from CSV for reliable data
+            csv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'business data.csv')
+            if os.path.exists(csv_path):
+                df = pd.read_csv(csv_path)
+                sales_df = df[df['metric_name'] == 'Daily_Sales']
 
-            if sales_metrics.exists():
-                # Group by product from metadata
                 product_revenue = {}
-
-                for metric in sales_metrics:
-                    product = "Unknown"
-                    if metric.metadata and isinstance(metric.metadata, dict) and 'product' in metric.metadata:
-                        product = metric.metadata['product'].strip()
-
-                    if product not in product_revenue:
-                        product_revenue[product] = 0
-
-                    product_revenue[product] += float(metric.value)
-
-                # Remove "Unknown" if we have real products
-                if len(product_revenue) > 1 and "Unknown" in product_revenue:
-                    del product_revenue["Unknown"]
+                for _, row in sales_df.iterrows():
+                    product = row.get('product', 'Unknown').strip()
+                    if product and product != 'Unknown':
+                        if product not in product_revenue:
+                            product_revenue[product] = 0
+                        product_revenue[product] += float(row['value'])
 
                 if product_revenue:
                     sorted_products = sorted(product_revenue.items(), key=lambda x: x[1], reverse=True)
@@ -611,18 +604,19 @@ class TopProductsView(APIView):
                         ]
                     }
 
-            # Fallback: Read directly from CSV
-            csv_path = os.path.join(os.path.dirname(__file__), 'business data.csv')
-            if os.path.exists(csv_path):
-                df = pd.read_csv(csv_path)
-                sales_df = df[df['metric_name'] == 'Daily_Sales']
-
+            # Fallback to database if CSV not found
+            sales_metrics = Metric.objects.filter(name='Daily_Sales')
+            if sales_metrics.exists():
                 product_revenue = {}
-                for _, row in sales_df.iterrows():
-                    product = row.get('product', 'Unknown').strip()
-                    if product not in product_revenue:
-                        product_revenue[product] = 0
-                    product_revenue[product] += float(row['value'])
+                for metric in sales_metrics:
+                    product = "Unknown"
+                    if metric.metadata and isinstance(metric.metadata, dict) and 'product' in metric.metadata:
+                        product = metric.metadata['product'].strip()
+
+                    if product and product != "Unknown":
+                        if product not in product_revenue:
+                            product_revenue[product] = 0
+                        product_revenue[product] += float(metric.value)
 
                 if product_revenue:
                     sorted_products = sorted(product_revenue.items(), key=lambda x: x[1], reverse=True)
