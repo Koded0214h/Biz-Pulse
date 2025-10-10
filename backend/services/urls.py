@@ -17,10 +17,11 @@ router.register(r'forecasts', ForecastPredictionViewSet, basename='forecasts')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path("upload/", UploadDataView.as_view(), name="upload-data"),
-    path('q/ask/', NaturalLanguageQueryView.as_view(), name='natural-language-query'),
+    path("upload/", views.UploadDataView.as_view(), name="upload-data"),
+    path('q/ask/', views.NaturalLanguageQueryView.as_view(), name='natural-language-query'),
     
-    path('charts/sales-summary/', SalesSummaryView.as_view(), name='sales-summary'),
+    # Charts endpoints
+    path('charts/sales-summary/', views.SalesSummaryView.as_view(), name='sales-summary'),
     path('charts/sales/', views.SalesDataView.as_view(), name='sales-chart'),
     path('charts/summary/', views.MetricsSummaryView.as_view(), name='metrics-summary'),
     path('charts/inventory/', views.InventoryTrendsView.as_view(), name='inventory-chart'),
@@ -28,7 +29,8 @@ urlpatterns = [
     path('charts/enhanced-sales/', views.EnhancedSalesDataView.as_view(), name='enhanced-sales-chart'),
     path('charts/top-products/', views.TopProductsView.as_view(), name='top-products-chart'),
     
-    path('business/recommendations/', views.BusinessRecommendationsView.as_view(), name='business recommendation'),
-    path('business/health/', views.BusinessHealthView.as_view(), name='business health'),
-    path('business/what-if/', views.WhatIfAnalysisView.as_view(), name='business what id'),
+    # NEW: Business AI endpoints - FIXED PATHS
+    path('q/recommendations/', views.BusinessRecommendationsView.as_view(), name='business-recommendations'),
+    path('q/health/', views.BusinessHealthView.as_view(), name='business-health'),
+    path('q/what-if/', views.WhatIfAnalysisView.as_view(), name='what-if-analysis'),
 ]

@@ -1,3 +1,4 @@
+# services/amazon_q_service.py
 import boto3
 import os
 import json
@@ -11,6 +12,32 @@ class BizPulseAmazonQService:
             raise ValueError("AMAZON_Q_APP_ID environment variable is not set")
             
         self.client = boto3.client('qbusiness', region_name=self.region)
+    
+    def ask_question(self, question):
+        """
+        For anonymous access applications, don't pass user_id
+        This method is called by NaturalLanguageQueryView
+        """
+        try:
+            response = self.client.chat_sync(
+                applicationId=self.app_id,
+                # ⚠️ No user_id parameter for anonymous access!
+                userMessage=question
+            )
+            
+            return {
+                "question": question,
+                "answer": response.get('systemMessage', ''),
+                "sources": response.get('sourceAttributions', []),
+                "conversation_id": response.get('conversationId')
+            }
+            
+        except Exception as e:
+            return {
+                "error": str(e),
+                "question": question,
+                "answer": f"Error: {str(e)}"
+            }
     
     def ask_business_question(self, question, business_context=None):
         """Enhanced Q&A with business context"""
@@ -68,10 +95,10 @@ class BizPulseAmazonQService:
         return {
             "question": original_question,
             "answer": response.get('systemMessage', ''),
-            "sources": response.get('sourceAttributions', []),
+            "sources": response.get('sourceAttributations', []),
             "conversation_id": response.get('conversationId'),
             "type": "business_insight",
-            "timestamp": "now"  # You can add actual timestamp
+            "timestamp": "now"
         }
     
     def _create_error_response(self, question, error):
