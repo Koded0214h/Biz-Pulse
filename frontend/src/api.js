@@ -117,6 +117,21 @@ export const authAPI = {
     return response.data;
   },
 
+  acknowledgeAlert: async (alertId) => {
+    const response = await api.post(`/services/alerts/${alertId}/acknowledge/`);
+    return response.data;
+  },
+
+  dismissAlert: async (alertId) => {
+    const response = await api.post(`/services/alerts/${alertId}/dismiss/`);
+    return response.data;
+  },
+
+  bulkAlertAction: async (data) => {
+    const response = await api.post('/services/alerts/bulk-action/', data);
+    return response.data;
+  },
+
   getSalesSummary: async () => {
     const response = await api.get('/services/charts/sales-summary/');
     return response.data;

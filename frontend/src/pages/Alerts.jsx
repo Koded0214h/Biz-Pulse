@@ -662,20 +662,24 @@ const Alerts = () => {
                               )}
                             </div>
 
-                            {/* Actions */}
+                            {/* Actions
                             <div className="flex items-center space-x-4 mt-4">
-                              <button
-                                onClick={() => handleAcknowledge(alert.alertId)}
-                                className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-                              >
-                                Acknowledge
-                              </button>
-                              <button
-                                onClick={() => handleDismiss(alert.alertId)}
-                                className="text-gray-500 hover:text-gray-700 text-sm"
-                              >
-                                Dismiss
-                              </button>
+                              {alert.id && (
+                                <>
+                                  <button
+                                    onClick={() => handleAcknowledge(alert.id)}
+                                    className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+                                  >
+                                    Acknowledge
+                                  </button>
+                                  <button
+                                    onClick={() => handleDismiss(alert.id)}
+                                    className="text-gray-500 hover:text-gray-700 text-sm"
+                                  >
+                                    Dismiss
+                                  </button>
+                                </>
+                              )}
                               <button className="text-gray-500 hover:text-gray-700 text-sm">
                                 View Details
                               </button>
@@ -684,7 +688,7 @@ const Alerts = () => {
                                   Show Recommendations
                                 </button>
                               )}
-                            </div>
+                            </div> */}
                           </div>
                         </div>
                       </div>
